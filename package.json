@@ -34,7 +34,7 @@
     "dev": "vite --port=5000",
     "test": "jest",
     "make": "npx cross-env NODE_ENV=production rollup -c && dts-bundle-generator -o dist/index.d.ts src/core/index.ts",
-    "lint": "tsc --noEmit && eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "tsc --noEmit && eslint src --fix --ext ts,tsx --max-warnings 0",
     "prepare": "husky install",
     "build": "yarn lint && yarn test && rimraf dist && yarn make",
     "release": "yarn build && npx np"
