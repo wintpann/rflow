@@ -5,16 +5,23 @@ import {
   onBecomeObserved,
   onBecomeUnobserved,
   toJS,
+  untracked,
 } from 'mobx';
 
 import { debug, die, pipe } from '../common/lib.ts';
 import {
   CreateObservableOptions,
+  CreateDerivedObservable,
+  CreateInterceptedObservable,
   Observable,
   ObservableController,
   ObservableState,
 } from './typings.ts';
 import { Lazy } from '../common/typings.ts';
+
+export const createDerivation = <T>(
+  options: CreateDerivedObservable<T> | CreateInterceptedObservable<T>,
+) => createObservable<T>(undefined as T, options);
 
 export const createObservable = <T>(
   value: T,
@@ -32,17 +39,12 @@ export const createObservable = <T>(
     },
   };
 
-  const controller: ObservableController<T> = {
+  const controller: ObservableController = {
     derive: () => {
       if (state.deriver) {
-        observable.$ = state.deriver();
+        observable.$ = untracked(() => state.deriver!());
       } else {
         die('No deriver set');
-      }
-    },
-    chain: (prev: T) => {
-      if (state.justCreated && state.shouldChain) {
-        observable.$ = prev;
       }
     },
   };
@@ -53,9 +55,7 @@ export const createObservable = <T>(
       get value() {
         if (state.interceptor) {
           return state.interceptor();
-        }
-
-        if (state.deriver && !state.observed) {
+        } else if (state.deriver && !state.observed) {
           controller.derive();
         }
 

@@ -21,13 +21,24 @@ export type CreateObservableOptions<T> = Partial<
 > & {
   onObserved?: (
     state: ObservableState<T>,
-    controller: ObservableController<T>,
+    controller: ObservableController,
   ) => UnobservedHandler | void;
 };
 
-export type ObservableController<T> = {
+export type CreateDerivedObservable<T> = Omit<
+  CreateObservableOptions<T>,
+  'deriver'
+> &
+  Pick<Required<CreateObservableOptions<T>>, 'deriver'>;
+
+export type CreateInterceptedObservable<T> = Omit<
+  CreateObservableOptions<T>,
+  'interceptor'
+> &
+  Pick<Required<CreateObservableOptions<T>>, 'interceptor'>;
+
+export type ObservableController = {
   derive: () => void;
-  chain: (prev: T) => void;
 };
 
 export type ObservableNext<T> = (value: T | ((prev: T) => T)) => void;
