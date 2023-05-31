@@ -5,7 +5,7 @@ export const die = (message: string) => {
 };
 
 export const debug = (event: string, source: string) => {
-  console.log('\x1b[36m%s\x1b[0m', `REACTIVE[${event}]: ${source}`); // Cyan
+  console.log('\x1b[36m%s\x1b[0m', `REACTIVE[${event}]: ${source}`);
 };
 
 export const noop = (): void => undefined;
