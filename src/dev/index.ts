@@ -1,3 +1,4 @@
-import { Main } from './main.tsx';
+import { Testing } from './testing.tsx';
+import './expose-window.ts';
 
-export const stories = { Main };
+export const stories = { Testing };
