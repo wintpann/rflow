@@ -78,8 +78,8 @@ const mapLeft: FutureMapLeft =
   };
 
 const getOrElse: FutureGetOrElse =
-  <A>(onElse: () => A) =>
-  (future: Future<A>) => {
+  <A, E>(onElse: () => A) =>
+  (future: Future<A, E>) => {
     if (isSuccess(future)) {
       return future.data;
     }
@@ -91,8 +91,8 @@ const getOrElse: FutureGetOrElse =
     return onElse();
   };
 
-const toNullable: FutureToNullable = <A>(future: Future<A>): A | null =>
-  getOrElse<A | null>(() => null)(future);
+const toNullable: FutureToNullable = <A, E>(future: Future<A, E>): A | null =>
+  getOrElse<A | null, E>(() => null)(future);
 
 const chain: FutureChain =
   <A, B, E = Error>(f: (a: A) => Future<B, E>) =>
@@ -125,8 +125,8 @@ const sequence = ((...list: Future<any, any>[]) => {
     return pending(list.map(({ data }) => data));
   }
 
-  const everyPending = list.every(isPending);
-  if (everyPending) {
+  const pendingCount = list.filter(isPending).length;
+  if (pendingCount > 0) {
     return pending();
   }
 

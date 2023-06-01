@@ -21,7 +21,7 @@ export type Future<A, E = Error> =
   | FutureFailure<E>;
 
 export interface FutureMap {
-  <A, B, E = Error>(f: (a: A) => B): (future: Future<A, E>) => Future<B, E>;
+  <A, B, E>(f: (a: A) => B): (future: Future<A, E>) => Future<B, E>;
 }
 
 export interface FutureMapLeft {
@@ -29,38 +29,35 @@ export interface FutureMapLeft {
 }
 
 export interface FutureGetOrElse {
-  <A>(onElse: () => A): (future: Future<A>) => A;
+  <A, E>(onElse: () => A): (future: Future<A, E>) => A;
 }
 
 export interface FutureToNullable {
-  <A>(future: Future<A>): A | null;
+  <A, E>(future: Future<A, E>): A | null;
 }
 
 export interface FutureChain {
-  <A, B, E = Error>(f: (a: A) => Future<B, E>): (
-    future: Future<A, E>,
-  ) => Future<B, E>;
+  <A, B, E>(f: (a: A) => Future<B, E>): (future: Future<A, E>) => Future<B, E>;
 }
 
 export interface FutureSequence {
-  <A, E = Error>(a: Future<A, E>): Future<[A], E>;
+  <A, E>(a: Future<A, E>): Future<[A], E>;
 
-  <A, B, E = Error>(a: Future<A, E>, b: Future<B, E>): Future<[A, B], E>;
+  <A, B, E>(a: Future<A, E>, b: Future<B, E>): Future<[A, B], E>;
 
-  <A, B, C, E = Error>(
-    a: Future<A, E>,
-    b: Future<B, E>,
-    c: Future<C, E>,
-  ): Future<[A, B, C], E>;
+  <A, B, C, E>(a: Future<A, E>, b: Future<B, E>, c: Future<C, E>): Future<
+    [A, B, C],
+    E
+  >;
 
-  <A, B, C, D, E = Error>(
+  <A, B, C, D, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
     d: Future<D, E>,
   ): Future<[A, B, C, D], E>;
 
-  <A, B, C, D, F, E = Error>(
+  <A, B, C, D, F, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -68,7 +65,7 @@ export interface FutureSequence {
     f: Future<F, E>,
   ): Future<[A, B, C, D, F], E>;
 
-  <A, B, C, D, F, G, E = Error>(
+  <A, B, C, D, F, G, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -77,7 +74,7 @@ export interface FutureSequence {
     g: Future<G, E>,
   ): Future<[A, B, C, D, F, G], E>;
 
-  <A, B, C, D, F, G, H, E = Error>(
+  <A, B, C, D, F, G, H, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -87,7 +84,7 @@ export interface FutureSequence {
     h: Future<H, E>,
   ): Future<[A, B, C, D, F, G, H], E>;
 
-  <A, B, C, D, F, G, H, I, E = Error>(
+  <A, B, C, D, F, G, H, I, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -98,7 +95,7 @@ export interface FutureSequence {
     i: Future<I, E>,
   ): Future<[A, B, C, D, F, G, H, I], E>;
 
-  <A, B, C, D, F, G, H, I, J, E = Error>(
+  <A, B, C, D, F, G, H, I, J, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -110,7 +107,7 @@ export interface FutureSequence {
     j: Future<J, E>,
   ): Future<[A, B, C, D, F, G, H, I, J], E>;
 
-  <A, B, C, D, F, G, H, I, J, K, E = Error>(
+  <A, B, C, D, F, G, H, I, J, K, E>(
     a: Future<A, E>,
     b: Future<B, E>,
     c: Future<C, E>,
@@ -134,7 +131,7 @@ export interface FutureCombine {
 }
 
 export interface FutureFold {
-  <A, B, E = Error>(
+  <A, B, E>(
     onInitial: () => B,
     onPending: (data: A | undefined) => B,
     onFailure: (e: E) => B,
