@@ -1,6 +1,6 @@
-import { Observable } from '../../observable/typings.ts';
+import { Observable } from '../observable/typings.ts';
 import { Map } from './typings.ts';
-import { createDerivation } from '../../observable/lib.ts';
+import { createDerivation } from '../observable/lib.ts';
 
 export const map: Map =
   <A, B>(fn: (value: A) => B) =>

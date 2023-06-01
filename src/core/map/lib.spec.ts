@@ -1,6 +1,6 @@
 import { of } from '../of/lib.ts';
 import { map } from './lib.ts';
-import { readEffect, runEffect } from '../../test-utils.ts';
+import { readEffect, runEffect } from '../test-utils.ts';
 import { runInAction } from 'mobx';
 
 describe('should map', () => {

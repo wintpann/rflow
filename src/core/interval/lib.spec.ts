@@ -1,5 +1,5 @@
 import { interval } from './lib.ts';
-import { delay, readEffect, runEffect } from '../../test-utils.ts';
+import { delay, readEffect, runEffect } from '../test-utils.ts';
 
 describe('should create interval', () => {
   it('should create interval with initial value of 0', () => {
