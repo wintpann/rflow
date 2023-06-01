@@ -55,5 +55,5 @@ export type Observable<T> = {
   value: T;
   raw: T;
   next: ObservableNext<T>;
-  pipe: SelfPipe<T>;
+  pipe: SelfPipe<Observable<T>>;
 };

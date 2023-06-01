@@ -85,9 +85,7 @@ describe('createObservable', () => {
   it('should intercept value and update source when interceptingSource updating', () => {
     const interceptingSource = createObservable('1');
 
-    const interceptor = jest
-      .fn()
-      .mockImplementation(() => interceptingSource.value);
+    const interceptor = jest.fn(() => interceptingSource.value);
 
     const source = createDerivation<string>({
       interceptor,
@@ -111,7 +109,7 @@ describe('createObservable', () => {
   it('should derive value automatically on unobserved access', () => {
     const derivingSource = createObservable('1');
 
-    const deriver = jest.fn().mockImplementation(() => derivingSource.value);
+    const deriver = jest.fn(() => derivingSource.value);
 
     const source = createDerivation<string>({
       deriver,
@@ -137,7 +135,7 @@ describe('createObservable', () => {
   it('should derive value by derive() call and not update source when derivingSource updating', () => {
     const derivingSource = createObservable('1');
 
-    const deriver = jest.fn().mockImplementation(() => derivingSource.value);
+    const deriver = jest.fn(() => derivingSource.value);
 
     const source = createDerivation<string>({
       deriver,
