@@ -1,4 +1,4 @@
-import { Testing } from './testing.tsx';
+import { CreateObservable } from './stories/createObservable.tsx';
 import './expose-window.ts';
 
-export const stories = { Testing };
+export const stories = { CreateObservable };

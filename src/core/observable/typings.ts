@@ -13,29 +13,36 @@ export type ObservableState<T> = {
 export type UnobservedHandler = Lazy;
 export type ObservedHandler = Lazy<UnobservedHandler | void>;
 
-export type CreateObservableOptions<T> = Partial<
-  Pick<
-    ObservableState<T>,
-    'deriver' | 'interceptor' | 'shouldChain' | 'enabled'
-  >
-> & {
+export type CreateObservableOptions<T> = {
+  deriver?: ObservableState<T>['deriver'];
+  interceptor?: ObservableState<T>['interceptor'];
+  shouldChain?: ObservableState<T>['shouldChain'];
+  enabled?: ObservableState<T>['enabled'];
   onObserved?: (
     state: ObservableState<T>,
     controller: ObservableController,
   ) => UnobservedHandler | void;
 };
 
-export type CreateDerivedObservable<T> = Omit<
-  CreateObservableOptions<T>,
-  'deriver'
-> &
-  Pick<Required<CreateObservableOptions<T>>, 'deriver'>;
+export type CreateDerivedObservable<T> = {
+  deriver: ObservableState<T>['deriver'];
+  shouldChain?: ObservableState<T>['shouldChain'];
+  enabled?: ObservableState<T>['enabled'];
+  onObserved?: (
+    state: ObservableState<T>,
+    controller: ObservableController,
+  ) => UnobservedHandler | void;
+};
 
-export type CreateInterceptedObservable<T> = Omit<
-  CreateObservableOptions<T>,
-  'interceptor'
-> &
-  Pick<Required<CreateObservableOptions<T>>, 'interceptor'>;
+export type CreateInterceptedObservable<T> = {
+  interceptor: ObservableState<T>['interceptor'];
+  shouldChain?: ObservableState<T>['shouldChain'];
+  enabled?: ObservableState<T>['enabled'];
+  onObserved?: (
+    state: ObservableState<T>,
+    controller: ObservableController,
+  ) => UnobservedHandler | void;
+};
 
 export type ObservableController = {
   derive: () => void;

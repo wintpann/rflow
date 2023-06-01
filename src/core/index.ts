@@ -10,3 +10,6 @@ export type {
   CreateObservableOptions,
 } from './observable/typings.ts';
 export { createObservable } from './observable/lib.ts';
+
+export type { Of } from './operators/of/typings.ts';
+export { of } from './operators/of/lib.ts';
