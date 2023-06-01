@@ -6,6 +6,9 @@ export const delay = (ms: number): Promise<void> =>
 export const runEffect = <T>(effect: () => T) => {
   const updates = {
     current: [] as T[],
+    get last() {
+      return updates.current[updates.current.length - 1];
+    },
   };
 
   const dispose = autorun(() => {
