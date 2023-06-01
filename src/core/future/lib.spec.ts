@@ -101,13 +101,9 @@ describe('future', () => {
 
     expect(mapLeft(idle)).toStrictEqual(future.idle());
     expect(mapLeft(pending)).toStrictEqual(future.pending());
-    expect(mapLeft(failure)).toStrictEqual(
-      future.failure(MOCK.FAILURE_VALUE * 2),
-    );
+    expect(mapLeft(failure)).toStrictEqual(future.failure(MOCK.FAILURE_VALUE * 2));
     expect(mapLeft(success)).toStrictEqual(future.of(MOCK.SUCCESS_VALUE));
-    expect(mapLeft(refreshing)).toStrictEqual(
-      future.pending(MOCK.PENDING_VALUE),
-    );
+    expect(mapLeft(refreshing)).toStrictEqual(future.pending(MOCK.PENDING_VALUE));
   });
 
   it('should run fold correctly', () => {
