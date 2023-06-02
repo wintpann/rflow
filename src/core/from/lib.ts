@@ -32,9 +32,9 @@ const fromIterable = <A>(
       } else {
         out.next(array[currentIndex++]);
       }
-
-      return () => clearInterval(interval);
     }, delay);
+
+    return () => clearInterval(interval);
   });
 
   return out;

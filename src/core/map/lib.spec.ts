@@ -108,4 +108,30 @@ describe('should map', () => {
 
     run1.dispose();
   });
+
+  it('should run mapper as mapTo', () => {
+    const mapToEmptyArray: () => [] = jest.fn(() => []);
+
+    const source = of({ a: 0, b: 0 });
+    const alwaysEmptyArray = source.pipe(map(mapToEmptyArray));
+
+    expect(mapToEmptyArray).not.toHaveBeenCalled();
+    expect(readEffect(() => source.value)).toStrictEqual({ a: 0, b: 0 });
+    expect(mapToEmptyArray).not.toHaveBeenCalled();
+
+    expect(readEffect(() => alwaysEmptyArray.value)).toStrictEqual([]);
+    expect(mapToEmptyArray).toHaveBeenCalledTimes(1);
+
+    const run1 = runEffect(() => alwaysEmptyArray.value);
+    expect(mapToEmptyArray).toHaveBeenCalledTimes(2);
+
+    source.next({ a: 1, b: 1 });
+    expect(mapToEmptyArray).toHaveBeenCalledTimes(3);
+
+    source.mutate((value) => {
+      value.a++;
+    });
+    expect(mapToEmptyArray).toHaveBeenCalledTimes(4);
+    run1.dispose();
+  });
 });
