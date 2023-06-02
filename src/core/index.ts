@@ -8,6 +8,10 @@ export type {
   ObservableNext,
   UnobservedHandler,
   CreateObservableOptions,
+  ObservableUpdate,
+  ObservableMutate,
+  CreateDerivedObservable,
+  CreateInterceptedObservable,
 } from './observable/typings.ts';
 export { createObservable, createDerivation } from './observable/lib.ts';
 
@@ -19,6 +23,9 @@ export { map } from './map/lib.ts';
 
 export type { Interval } from './interval/typings.ts';
 export { interval } from './interval/lib.ts';
+
+export type { From } from './from/typings.ts';
+export { from } from './from/lib.ts';
 
 export type {
   Future,
