@@ -42,14 +42,19 @@ describe('createObservable', () => {
     source.next({ count: 1 });
     expect(run1.updates.current).toStrictEqual([{ count: 0 }, { count: 1 }]);
 
-    source.next((prev) => ({ count: prev.count + 1 }));
+    source.mutate((value) => {
+      value.count++;
+    });
+
     expect(run1.updates.current).toStrictEqual([
       { count: 0 },
       { count: 1 },
       { count: 2 },
     ]);
 
-    source.value.count = 3;
+    source.mutate((value) => {
+      value.count = 3;
+    });
     expect(run1.updates.current).toStrictEqual([
       { count: 0 },
       { count: 1 },
@@ -70,11 +75,15 @@ describe('createObservable', () => {
     expect(runA.updates.current).toStrictEqual([0, 1]);
     expect(runB.updates.current).toStrictEqual([0, 1]);
 
-    source.value.a = 2;
+    source.mutate((value) => {
+      value.a = 2;
+    });
     expect(runA.updates.current).toStrictEqual([0, 1, 2]);
     expect(runB.updates.current).toStrictEqual([0, 1]);
 
-    source.value.b = 2;
+    source.mutate((value) => {
+      value.b = 2;
+    });
     expect(runA.updates.current).toStrictEqual([0, 1, 2]);
     expect(runB.updates.current).toStrictEqual([0, 1, 2]);
 

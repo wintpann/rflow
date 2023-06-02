@@ -7,7 +7,7 @@ const start = () => {
   console.log('observable.value', observable.value);
 
   observable.next('1');
-  observable.next((p) => p + '1');
+  observable.update((p) => p + '1');
   observable.value += '1';
 
   autorun(() => {
@@ -15,7 +15,7 @@ const start = () => {
   });
 
   observable.next('2');
-  observable.next((p) => p + '2');
+  observable.update((p) => p + '2');
   observable.value += '2';
 };
 

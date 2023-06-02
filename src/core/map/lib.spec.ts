@@ -1,7 +1,6 @@
 import { of } from '../of/lib.ts';
 import { map } from './lib.ts';
 import { readEffect, runEffect } from '../test-utils.ts';
-import { runInAction } from 'mobx';
 
 describe('should map', () => {
   it('should run mapper on unobserved access', () => {
@@ -59,14 +58,14 @@ describe('should map', () => {
     expect(pluckA).toHaveBeenCalledTimes(2);
     expect(pluckB).toHaveBeenCalledTimes(2);
 
-    runInAction(() => {
-      source.value.a++;
+    source.mutate((value) => {
+      value.a++;
     });
     expect(pluckA).toHaveBeenCalledTimes(3);
     expect(pluckB).toHaveBeenCalledTimes(2);
 
-    runInAction(() => {
-      source.value.b++;
+    source.mutate((value) => {
+      value.b++;
     });
     expect(pluckA).toHaveBeenCalledTimes(3);
     expect(pluckB).toHaveBeenCalledTimes(3);

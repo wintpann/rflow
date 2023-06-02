@@ -4,13 +4,12 @@ export type { pipe } from './common/lib.ts';
 export type {
   ObservedHandler,
   ObservableController,
-  Observable,
   ObservableState,
   ObservableNext,
   UnobservedHandler,
   CreateObservableOptions,
 } from './observable/typings.ts';
-export { createObservable } from './observable/lib.ts';
+export { createObservable, createDerivation } from './observable/lib.ts';
 
 export type { Of } from './of/typings.ts';
 export { of } from './of/lib.ts';

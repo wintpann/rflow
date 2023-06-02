@@ -1,4 +1,4 @@
-import { Lazy, SelfPipe } from '../common/typings.ts';
+import { Lazy } from '../common/typings.ts';
 
 export type ObservableState<T> = {
   deriver?: Lazy<T>;
@@ -8,6 +8,7 @@ export type ObservableState<T> = {
   justCreated: boolean;
   enabled: boolean;
   isDerivation: boolean;
+  BUODisposer?: Lazy | void;
 };
 
 export type UnobservedHandler = Lazy;
@@ -48,12 +49,6 @@ export type ObservableController = {
   derive: () => void;
 };
 
-export type ObservableNext<T> = (value: T | ((prev: T) => T)) => void;
-
-export type Observable<T> = {
-  $: T;
-  value: T;
-  raw: T;
-  next: ObservableNext<T>;
-  pipe: SelfPipe<Observable<T>>;
-};
+export type ObservableNext<T> = (value: T) => void;
+export type ObservableUpdate<T> = (callback: (prev: T) => T) => void;
+export type ObservableMutate<T> = (callback: (value: T) => void) => void;
