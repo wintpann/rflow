@@ -1,6 +1,11 @@
 import { Of } from './typings.ts';
-import { ObservedHandler } from '../observable/typings.ts';
-import { createObservable } from '../observable/lib.ts';
+import { UnobservedHandler } from '../observable/typings.ts';
+import { createObservable, Observable } from '../observable/lib.ts';
 
-export const of: Of = <T>(value: T, onObserved?: ObservedHandler) =>
-  createObservable(value, { onObserved });
+export const of: Of = <T>(
+  value: T,
+  onObserved?: (self: Observable<T>) => UnobservedHandler | void,
+) =>
+  createObservable(value, {
+    onObserved: onObserved ? (self) => onObserved(self) : undefined,
+  });

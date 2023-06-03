@@ -1,4 +1,5 @@
 import { Lazy } from '../common/typings.ts';
+import { Observable } from './lib.ts';
 
 export type ObservableState<T> = {
   deriver?: Lazy<T>;
@@ -12,7 +13,6 @@ export type ObservableState<T> = {
 };
 
 export type UnobservedHandler = Lazy;
-export type ObservedHandler = Lazy<UnobservedHandler | void>;
 
 export type CreateObservableOptions<T> = {
   deriver?: ObservableState<T>['deriver'];
@@ -20,6 +20,7 @@ export type CreateObservableOptions<T> = {
   shouldChain?: ObservableState<T>['shouldChain'];
   enabled?: ObservableState<T>['enabled'];
   onObserved?: (
+    self: Observable<T>,
     state: ObservableState<T>,
     controller: ObservableController,
   ) => UnobservedHandler | void;
@@ -29,20 +30,14 @@ export type CreateDerivedObservable<T> = {
   deriver: ObservableState<T>['deriver'];
   shouldChain?: ObservableState<T>['shouldChain'];
   enabled?: ObservableState<T>['enabled'];
-  onObserved?: (
-    state: ObservableState<T>,
-    controller: ObservableController,
-  ) => UnobservedHandler | void;
+  onObserved?: CreateObservableOptions<T>['onObserved'];
 };
 
 export type CreateInterceptedObservable<T> = {
   interceptor: ObservableState<T>['interceptor'];
   shouldChain?: ObservableState<T>['shouldChain'];
   enabled?: ObservableState<T>['enabled'];
-  onObserved?: (
-    state: ObservableState<T>,
-    controller: ObservableController,
-  ) => UnobservedHandler | void;
+  onObserved?: CreateObservableOptions<T>['onObserved'];
 };
 
 export type ObservableController = {

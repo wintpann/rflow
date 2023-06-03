@@ -2,7 +2,6 @@ export type { Lazy } from './common/typings.ts';
 export type { pipe } from './common/lib.ts';
 
 export type {
-  ObservedHandler,
   ObservableController,
   ObservableState,
   ObservableNext,

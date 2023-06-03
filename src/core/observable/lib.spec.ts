@@ -148,7 +148,7 @@ describe('createObservable', () => {
 
     const source = createDerivation<string>({
       deriver,
-      onObserved: (_, controller) => {
+      onObserved: (_self, _state, controller) => {
         controller.derive();
       },
     });

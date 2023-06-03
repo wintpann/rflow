@@ -6,15 +6,12 @@ export const fromEvent: FromEvent = (
   input: HasAddRemoveEventListener,
   eventName: string,
   options?: boolean | AddEventListenerOptions,
-): Observable<Event | null> => {
-  const out = of<Event | null>(null, () => {
-    const listener = (event: any) => out.next(event);
+): Observable<Event | null> =>
+  of<Event | null>(null, (self) => {
+    const listener = (event: any) => self.next(event);
     input.addEventListener(eventName, listener, options);
 
     return () => {
       input.removeEventListener(eventName, listener, options);
     };
   });
-
-  return out;
-};

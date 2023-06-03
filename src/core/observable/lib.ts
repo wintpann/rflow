@@ -87,6 +87,7 @@ export class Observable<T> {
       debug('observed', getDebugName(this));
       this[$State].observed = true;
       this[$State].BUODisposer = options?.onObserved?.(
+        this,
         this[$State],
         this[$Controller],
       );

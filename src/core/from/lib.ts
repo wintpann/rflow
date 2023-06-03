@@ -25,19 +25,17 @@ const fromIterable = <A>(
     die('from() only takes iterable with at least one item');
   }
 
-  const out = of(array[0], () => {
+  return of(array[0], (self) => {
     const interval = setInterval(() => {
       if (currentIndex === outOfBoundsIndex) {
         clearInterval(interval);
       } else {
-        out.next(array[currentIndex++]);
+        self.next(array[currentIndex++]);
       }
     }, delay);
 
     return () => clearInterval(interval);
   });
-
-  return out;
 };
 
 const fromAsyncIterable = <A>(
@@ -56,10 +54,10 @@ const fromAsyncIterable = <A>(
     haveUnAppliedLastValue: false,
   };
 
-  const out = createObservable(initial, {
-    onObserved: (state) => {
+  return createObservable(initial, {
+    onObserved: (self, state) => {
       if (ref.haveUnAppliedLastValue && ref.lastValue) {
-        out.next(ref.lastValue);
+        self.next(ref.lastValue);
       }
 
       const nextIteration = () => {
@@ -73,7 +71,7 @@ const fromAsyncIterable = <A>(
             }
 
             if (state.observed) {
-              out.next(value.value);
+              self.next(value.value);
               nextIteration();
             } else {
               ref.haveUnAppliedLastValue = true;
@@ -85,8 +83,6 @@ const fromAsyncIterable = <A>(
       nextIteration();
     },
   });
-
-  return out;
 };
 
 export const from = ((input: any, arg1?: any) => {
