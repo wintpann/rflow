@@ -48,3 +48,6 @@ export { fromEvent } from './fromEvent/lib.ts';
 
 export type { DistinctUntilChanged } from './distinctUntilChanged/typings.ts';
 export { distinctUntilChanged } from './distinctUntilChanged/lib.ts';
+
+export type { DebounceSettings, DebounceTime } from './debounceTime/typings.ts';
+export { debounceTime } from './debounceTime/lib.ts';
