@@ -21,8 +21,8 @@ export type CreateObservableOptions<T> = {
   enabled?: ObservableState<T>['enabled'];
   onObserved?: (
     self: Observable<T>,
-    state: ObservableState<T>,
-    controller: ObservableController,
+    state: Readonly<ObservableState<T>>,
+    controller: Readonly<ObservableController>,
   ) => UnobservedHandler | void;
 };
 
