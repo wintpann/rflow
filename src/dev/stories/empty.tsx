@@ -2,7 +2,9 @@ import { autorun } from 'mobx';
 import { useButtonControl } from 'storybox-react';
 
 const start = () => {
-  autorun(() => undefined);
+  autorun(() => {
+
+  });
 };
 
 export const Empty = () => {

@@ -43,3 +43,6 @@ export type {
   FuturePending,
 } from './future/typings.ts';
 export { future } from './future/lib.ts';
+
+export type { FromEvent } from './fromEvent/typings.ts';
+export { fromEvent } from './fromEvent/lib.ts';
