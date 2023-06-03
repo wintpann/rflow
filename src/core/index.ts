@@ -45,3 +45,6 @@ export { future } from './future/lib.ts';
 
 export type { FromEvent } from './fromEvent/typings.ts';
 export { fromEvent } from './fromEvent/lib.ts';
+
+export type { DistinctUntilChanged } from './distinctUntilChanged/typings.ts';
+export { distinctUntilChanged } from './distinctUntilChanged/lib.ts';

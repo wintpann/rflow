@@ -120,7 +120,7 @@ export class Observable<T> {
   }
 
   get raw() {
-    return toJS(this[$Value]);
+    return toJS(this.value);
   }
 }
 
