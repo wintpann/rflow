@@ -22,7 +22,7 @@ export const take: Take =
         }
 
         const newValue = toJS(source.value);
-        const equalToLast = comparer.structural(newValue, ref.lastValue);
+        const equalToLast = comparer.shallow(newValue, ref.lastValue);
         if (equalToLast) {
           return ref.lastValue;
         }

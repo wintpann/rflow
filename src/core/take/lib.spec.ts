@@ -109,4 +109,38 @@ describe('should take', () => {
 
     run1.dispose();
   });
+
+  it('should not count same value as updating', () => {
+    const source = of(0);
+    const take2 = source.pipe(take(2));
+
+    const run1 = runEffect(() => take2.value);
+    source.next(0);
+    expect(run1.updates.current).toStrictEqual([0]);
+    source.next(0);
+    expect(run1.updates.current).toStrictEqual([0]);
+    source.next(1);
+    expect(run1.updates.current).toStrictEqual([0, 1]);
+    source.next(2);
+    expect(run1.updates.current).toStrictEqual([0, 1, 2]);
+    source.next(3);
+    expect(run1.updates.current).toStrictEqual([0, 1, 2]);
+  });
+
+  it('should not count same value as updating (unobserved access)', () => {
+    const source = of(0);
+    const take2 = source.pipe(take(2));
+
+    expect(readEffect(() => take2.value)).toBe(0);
+    source.next(0);
+    expect(readEffect(() => take2.value)).toBe(0);
+    source.next(0);
+    expect(readEffect(() => take2.value)).toBe(0);
+    source.next(1);
+    expect(readEffect(() => take2.value)).toBe(1);
+    source.next(2);
+    expect(readEffect(() => take2.value)).toBe(2);
+    source.next(3);
+    expect(readEffect(() => take2.value)).toBe(2);
+  });
 });
