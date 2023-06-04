@@ -4,11 +4,8 @@ export { pipe } from './common/lib.ts';
 export type {
   ObservableController,
   ObservableState,
-  ObservableNext,
   UnobservedHandler,
   CreateObservableOptions,
-  ObservableUpdate,
-  ObservableMutate,
   CreateDerivedObservable,
   CreateInterceptedObservable,
 } from './observable/typings.ts';

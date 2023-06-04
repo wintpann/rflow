@@ -43,7 +43,3 @@ export type CreateInterceptedObservable<T> = {
 export type ObservableController = {
   derive: () => void;
 };
-
-export type ObservableNext<T> = (value: T) => void;
-export type ObservableUpdate<T> = (callback: (prev: T) => T) => void;
-export type ObservableMutate<T> = (callback: (value: T) => void) => void;

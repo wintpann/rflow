@@ -17,9 +17,6 @@ import {
   CreateInterceptedObservable,
   ObservableController,
   ObservableState,
-  ObservableNext,
-  ObservableUpdate,
-  ObservableMutate,
 } from './typings.ts';
 
 const $Controller = Symbol('ObservableController');
@@ -34,17 +31,17 @@ export class Observable<T> {
   // @ts-ignore
   pipe: SelfPipe<Observable<T>> = (...fns: any[]): any => pipe(this, ...fns);
 
-  next: ObservableNext<T> = (value) => {
+  next(value: T) {
     this[$Value] = value;
-  };
+  }
 
-  update: ObservableUpdate<T> = (callback) => {
+  update(callback: (prev: T) => T) {
     this[$Value] = callback(this[$Value]);
-  };
+  }
 
-  mutate: ObservableMutate<T> = (callback) => {
+  mutate(callback: (value: T) => void) {
     callback(this[$Value]);
-  };
+  }
 
   constructor(value: T, options?: CreateObservableOptions<T>) {
     this[$Value] = value;
