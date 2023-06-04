@@ -1,7 +1,7 @@
-import { Take } from './typings.ts';
-import { createDerivation, Observable } from '../observable/lib.ts';
 import { comparer, reaction, toJS, untracked } from 'mobx';
+import { createDerivation, Observable } from '../observable/lib.ts';
 import { die } from '../common/lib.ts';
+import { Take } from './typings.ts';
 
 export const take: Take =
   <A>(count: number) =>
