@@ -112,10 +112,6 @@ export class Observable<T> {
     return this[$Value];
   }
 
-  set value(value) {
-    this[$Value] = value;
-  }
-
   get raw() {
     return toJS(this.value);
   }
