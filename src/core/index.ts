@@ -51,3 +51,6 @@ export { distinctUntilChanged } from './distinctUntilChanged/lib.ts';
 
 export type { DebounceSettings, DebounceTime } from './debounceTime/typings.ts';
 export { debounceTime } from './debounceTime/lib.ts';
+
+export type { Take } from './take/typings.ts';
+export { take } from './take/lib.ts';
