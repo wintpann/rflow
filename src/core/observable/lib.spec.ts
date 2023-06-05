@@ -169,24 +169,39 @@ describe('createObservable', () => {
 
   it('should update lastUpdateTime', () => {
     jest.useFakeTimers({ now: 1000 });
-    const source = of(0);
+    const source = of({ a: 0 });
     expect(source.lastUpdatedTime).toBe(1000);
 
     jest.useFakeTimers({ now: 2000 });
-    source.next(1);
+    source.next({ a: 1 });
     expect(source.lastUpdatedTime).toBe(2000);
+
+    jest.useFakeTimers({ now: 3000 });
+    source.update(() => ({ a: 2 }));
+    expect(source.lastUpdatedTime).toBe(3000);
+
+    jest.useFakeTimers({ now: 4000 });
+    source.mutate((value) => {
+      value.a = 3;
+    });
+    expect(source.lastUpdatedTime).toBe(4000);
 
     jest.useRealTimers();
   });
 
   it('should update timesUpdated', () => {
-    const source = of(0);
+    const source = of({ a: 0 });
     expect(source.timesUpdated).toBe(0);
 
-    source.next(1);
+    source.next({ a: 1 });
     expect(source.timesUpdated).toBe(1);
 
-    source.next(1);
+    source.update(() => ({ a: 2 }));
     expect(source.timesUpdated).toBe(2);
+
+    source.mutate((value) => {
+      value.a = 3;
+    });
+    expect(source.timesUpdated).toBe(3);
   });
 });
