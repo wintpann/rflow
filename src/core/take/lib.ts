@@ -33,8 +33,9 @@ export const take: Take =
           return store.lastValue;
         }
 
-        store.updatesCount++;
         store.lastValue = newValue;
+        store.updatesCount++;
+        store.sourceTimesUpdated = source.timesUpdated; // TODO add testcase for this line missing
         return store.lastValue;
       },
       onObserved: (self, _state, controller) => {
@@ -49,6 +50,7 @@ export const take: Take =
           (value) => {
             store.lastValue = value;
             store.updatesCount++;
+            store.sourceTimesUpdated = source.timesUpdated; // TODO add testcase for this line missing
             self.next(value);
 
             if (store.updatesCount >= count) {

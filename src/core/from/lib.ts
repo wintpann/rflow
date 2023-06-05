@@ -57,6 +57,7 @@ const fromAsyncIterable = <A>(
   return createObservable(initial, {
     onObserved: (self, state) => {
       if (store.haveUnAppliedLastValue && store.lastValue) {
+        // TODO <A> can be undefined
         self.next(store.lastValue);
       }
 
