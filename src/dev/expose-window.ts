@@ -13,6 +13,7 @@ import {
   map,
   fromEvent,
   future,
+  merge,
 } from '../core/index.ts';
 import { autorun } from 'mobx';
 
@@ -29,3 +30,4 @@ window.of = of;
 window.map = map;
 window.fromEvent = fromEvent;
 window.future = future;
+window.merge = merge;

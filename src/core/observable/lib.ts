@@ -33,14 +33,17 @@ export class Observable<T> {
 
   next(value: T) {
     this[$Value] = value;
+    this[$State].lastUpdatedTime = Date.now();
   }
 
   update(callback: (prev: T) => T) {
     this[$Value] = callback(this[$Value]);
+    this[$State].lastUpdatedTime = Date.now();
   }
 
   mutate(callback: (value: T) => void) {
     callback(this[$Value]);
+    this[$State].lastUpdatedTime = Date.now();
   }
 
   constructor(value: T, options?: CreateObservableOptions<T>) {
@@ -59,6 +62,7 @@ export class Observable<T> {
       get isDerivation() {
         return getIsDerivation();
       },
+      lastUpdatedTime: Date.now(),
     };
 
     this[$Controller] = {
@@ -114,6 +118,10 @@ export class Observable<T> {
 
   get raw() {
     return toJS(this.value);
+  }
+
+  get lastUpdatedTime() {
+    return this[$State].lastUpdatedTime;
   }
 }
 

@@ -51,3 +51,6 @@ export { debounceTime } from './debounceTime/lib.ts';
 
 export type { Take } from './take/typings.ts';
 export { take } from './take/lib.ts';
+
+export type { Merge } from './merge/typings.ts';
+export { merge } from './merge/lib.ts';
