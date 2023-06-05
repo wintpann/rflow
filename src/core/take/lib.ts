@@ -10,7 +10,7 @@ export const take: Take =
       die('take() cannot get negative count');
     }
 
-    const ref: {
+    const store: {
       lastValue: A;
       updatesCount: number;
       sourceTimesUpdated: number;
@@ -22,36 +22,36 @@ export const take: Take =
 
     return createDerivation({
       deriver: () => {
-        if (ref.updatesCount >= count) {
-          return ref.lastValue;
+        if (store.updatesCount >= count) {
+          return store.lastValue;
         }
 
         const newValue = toJS(source.value);
-        const sourceUpdated = source.timesUpdated > ref.sourceTimesUpdated;
-        const equalToLast = comparer.identity(newValue, ref.lastValue);
+        const sourceUpdated = source.timesUpdated > store.sourceTimesUpdated;
+        const equalToLast = comparer.identity(newValue, store.lastValue);
         if (!sourceUpdated || equalToLast) {
-          return ref.lastValue;
+          return store.lastValue;
         }
 
-        ref.updatesCount++;
-        ref.lastValue = newValue;
-        return ref.lastValue;
+        store.updatesCount++;
+        store.lastValue = newValue;
+        return store.lastValue;
       },
       onObserved: (self, _state, controller) => {
         controller.derive();
 
-        if (ref.updatesCount >= count) {
+        if (store.updatesCount >= count) {
           return;
         }
 
         const dispose = reaction(
           () => toJS(source.value),
           (value) => {
-            ref.lastValue = value;
-            ref.updatesCount++;
+            store.lastValue = value;
+            store.updatesCount++;
             self.next(value);
 
-            if (ref.updatesCount >= count) {
+            if (store.updatesCount >= count) {
               dispose();
             }
           },

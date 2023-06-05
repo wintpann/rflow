@@ -42,7 +42,7 @@ const fromAsyncIterable = <A>(
   iterable: AsyncIterable<A>,
   initial: A,
 ): Observable<A> => {
-  const ref: {
+  const store: {
     iterator: AsyncIterator<A>;
     done: boolean;
     lastValue?: A;
@@ -56,25 +56,25 @@ const fromAsyncIterable = <A>(
 
   return createObservable(initial, {
     onObserved: (self, state) => {
-      if (ref.haveUnAppliedLastValue && ref.lastValue) {
-        self.next(ref.lastValue);
+      if (store.haveUnAppliedLastValue && store.lastValue) {
+        self.next(store.lastValue);
       }
 
       const nextIteration = () => {
-        if (!ref.done) {
-          ref.iterator.next().then((value) => {
+        if (!store.done) {
+          store.iterator.next().then((value) => {
             if (value.done) {
-              ref.done = true;
+              store.done = true;
               return;
             } else {
-              ref.lastValue = value.value;
+              store.lastValue = value.value;
             }
 
             if (state.observed) {
               self.next(value.value);
               nextIteration();
             } else {
-              ref.haveUnAppliedLastValue = true;
+              store.haveUnAppliedLastValue = true;
             }
           });
         }

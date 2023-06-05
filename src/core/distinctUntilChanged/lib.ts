@@ -10,7 +10,7 @@ import { DistinctUntilChanged } from './typings.ts';
 export const distinctUntilChanged: DistinctUntilChanged =
   <A>(comparer?: IEqualsComparer<A>) =>
   (source: Observable<A>): Observable<A> => {
-    const ref: { lastValue: A | undefined } = {
+    const store: { lastValue: A | undefined } = {
       lastValue: undefined,
     };
 
@@ -18,8 +18,8 @@ export const distinctUntilChanged: DistinctUntilChanged =
 
     return createDerivation({
       deriver: () => {
-        ref.lastValue = toJS(source.value);
-        return ref.lastValue;
+        store.lastValue = toJS(source.value);
+        return store.lastValue;
       },
       onObserved: (self, _state, controller) => {
         controller.derive();
@@ -27,12 +27,12 @@ export const distinctUntilChanged: DistinctUntilChanged =
         return reaction(
           () => toJS(source.value),
           (value) => {
-            const equals = compare(ref.lastValue!, value);
+            const equals = compare(store.lastValue!, value);
             if (!equals) {
               self.next(value);
             }
 
-            ref.lastValue = value;
+            store.lastValue = value;
           },
         );
       },
