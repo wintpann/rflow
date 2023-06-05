@@ -11,6 +11,7 @@ export type ObservableState<T> = {
   isDerivation: boolean;
   BUODisposer?: Lazy | void;
   lastUpdatedTime: number;
+  timesUpdated: number;
 };
 
 export type UnobservedHandler = Lazy;

@@ -110,7 +110,7 @@ describe('should take', () => {
     run1.dispose();
   });
 
-  it('should not count same value as updating', () => {
+  it('should not count same primitive value as updating', () => {
     const source = of(0);
     const take2 = source.pipe(take(2));
 
@@ -127,7 +127,7 @@ describe('should take', () => {
     expect(run1.updates.current).toStrictEqual([0, 1, 2]);
   });
 
-  it('should not count same value as updating (unobserved access)', () => {
+  it('should not count same primitive value as updating (unobserved access)', () => {
     const source = of(0);
     const take2 = source.pipe(take(2));
 
@@ -142,5 +142,35 @@ describe('should take', () => {
     expect(readEffect(() => take2.value)).toBe(2);
     source.next(3);
     expect(readEffect(() => take2.value)).toBe(2);
+  });
+
+  it('should count same shallow value as updating', () => {
+    const source = of({ a: 0 });
+    const take2 = source.pipe(take(2));
+
+    const run1 = runEffect(() => take2.raw);
+    source.next({ a: 0 });
+    expect(run1.updates.current).toStrictEqual([{ a: 0 }, { a: 0 }]);
+    source.next({ a: 1 });
+    expect(run1.updates.current).toStrictEqual([{ a: 0 }, { a: 0 }, { a: 1 }]);
+    source.next({ a: 2 });
+    expect(run1.updates.current).toStrictEqual([{ a: 0 }, { a: 0 }, { a: 1 }]);
+    source.next({ a: 3 });
+    expect(run1.updates.current).toStrictEqual([{ a: 0 }, { a: 0 }, { a: 1 }]);
+  });
+
+  it('should count same shallow value as updating (unobserved access)', () => {
+    const source = of({ a: 0 });
+    const take2 = source.pipe(take(2));
+
+    expect(readEffect(() => take2.raw)).toStrictEqual({ a: 0 });
+    source.next({ a: 0 });
+    expect(readEffect(() => take2.raw)).toStrictEqual({ a: 0 });
+    source.next({ a: 1 });
+    expect(readEffect(() => take2.raw)).toStrictEqual({ a: 1 });
+    source.next({ a: 2 });
+    expect(readEffect(() => take2.raw)).toStrictEqual({ a: 1 });
+    source.next({ a: 3 });
+    expect(readEffect(() => take2.raw)).toStrictEqual({ a: 1 });
   });
 });

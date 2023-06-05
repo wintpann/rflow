@@ -10,9 +10,14 @@ export const take: Take =
       die('take() cannot get negative count');
     }
 
-    const ref: { lastValue: A; updatesCount: number } = {
+    const ref: {
+      lastValue: A;
+      updatesCount: number;
+      sourceTimesUpdated: number;
+    } = {
       lastValue: untracked(() => toJS(source.value)),
       updatesCount: 0,
+      sourceTimesUpdated: source.timesUpdated,
     };
 
     return createDerivation({
@@ -22,8 +27,9 @@ export const take: Take =
         }
 
         const newValue = toJS(source.value);
-        const equalToLast = comparer.shallow(newValue, ref.lastValue);
-        if (equalToLast) {
+        const sourceUpdated = source.timesUpdated > ref.sourceTimesUpdated;
+        const equalToLast = comparer.identity(newValue, ref.lastValue);
+        if (!sourceUpdated || equalToLast) {
           return ref.lastValue;
         }
 

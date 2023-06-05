@@ -1,5 +1,6 @@
 import { createDerivation, createObservable } from './lib.ts';
 import { readEffect, runEffect } from '../test-utils.ts';
+import { of } from '../of/lib.ts';
 
 describe('createObservable', () => {
   it('should create observable', () => {
@@ -164,5 +165,28 @@ describe('createObservable', () => {
     expect(run1.updates.current).toStrictEqual(['1']);
 
     run1.dispose();
+  });
+
+  it('should update lastUpdateTime', () => {
+    jest.useFakeTimers({ now: 1000 });
+    const source = of(0);
+    expect(source.lastUpdatedTime).toBe(1000);
+
+    jest.useFakeTimers({ now: 2000 });
+    source.next(1);
+    expect(source.lastUpdatedTime).toBe(2000);
+
+    jest.useRealTimers();
+  });
+
+  it('should update timesUpdated', () => {
+    const source = of(0);
+    expect(source.timesUpdated).toBe(0);
+
+    source.next(1);
+    expect(source.timesUpdated).toBe(1);
+
+    source.next(1);
+    expect(source.timesUpdated).toBe(2);
   });
 });
