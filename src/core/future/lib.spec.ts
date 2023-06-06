@@ -21,22 +21,22 @@ const setup = () => {
 describe('future', () => {
   it('should have correct idle factory', () => {
     expect(future.idle()).toStrictEqual({
-      data: undefined,
+      data: null,
       state: 'idle',
-      error: undefined,
+      error: null,
     });
   });
 
   it('should have correct pending factory', () => {
     expect(future.pending()).toStrictEqual({
       state: 'pending',
-      error: undefined,
-      data: undefined,
+      error: null,
+      data: null,
     });
 
     expect(future.pending(MOCK.PENDING_VALUE)).toStrictEqual({
       state: 'pending',
-      error: undefined,
+      error: null,
       data: MOCK.PENDING_VALUE,
     });
   });
@@ -45,14 +45,14 @@ describe('future', () => {
     expect(future.failure(MOCK.FAILURE_VALUE)).toStrictEqual({
       state: 'failure',
       error: MOCK.FAILURE_VALUE,
-      data: undefined,
+      data: null,
     });
   });
 
   it('should have correct success factory', () => {
     expect(future.of(MOCK.SUCCESS_VALUE)).toStrictEqual({
       state: 'success',
-      error: undefined,
+      error: null,
       data: MOCK.SUCCESS_VALUE,
     });
   });
@@ -101,9 +101,13 @@ describe('future', () => {
 
     expect(mapLeft(idle)).toStrictEqual(future.idle());
     expect(mapLeft(pending)).toStrictEqual(future.pending());
-    expect(mapLeft(failure)).toStrictEqual(future.failure(MOCK.FAILURE_VALUE * 2));
+    expect(mapLeft(failure)).toStrictEqual(
+      future.failure(MOCK.FAILURE_VALUE * 2),
+    );
     expect(mapLeft(success)).toStrictEqual(future.of(MOCK.SUCCESS_VALUE));
-    expect(mapLeft(refreshing)).toStrictEqual(future.pending(MOCK.PENDING_VALUE));
+    expect(mapLeft(refreshing)).toStrictEqual(
+      future.pending(MOCK.PENDING_VALUE),
+    );
   });
 
   it('should run fold correctly', () => {

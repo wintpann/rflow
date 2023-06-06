@@ -8,7 +8,6 @@ const start = () => {
 
   observable.next('1');
   observable.update((p) => p + '1');
-  observable.value += '1';
 
   autorun(() => {
     console.log('AUTORUN observable.value >>', observable.value);
@@ -16,7 +15,6 @@ const start = () => {
 
   observable.next('2');
   observable.update((p) => p + '2');
-  observable.value += '2';
 };
 
 export const CreateObservable = () => {

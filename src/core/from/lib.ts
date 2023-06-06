@@ -45,19 +45,19 @@ const fromAsyncIterable = <A>(
   const store: {
     iterator: AsyncIterator<A>;
     done: boolean;
-    lastValue?: A;
+    lastValue: A | null;
     haveUnAppliedLastValue: boolean;
   } = {
     iterator: iterable[Symbol.asyncIterator](),
     done: false,
-    lastValue: undefined,
+    lastValue: null,
     haveUnAppliedLastValue: false,
   };
 
   return createObservable(initial, {
     onObserved: (self, state) => {
       if (store.haveUnAppliedLastValue && store.lastValue) {
-        // TODO <A> can be undefined
+        // TODO <A> can be null
         self.next(store.lastValue);
       }
 

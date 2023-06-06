@@ -74,7 +74,7 @@ describe('should take', () => {
     expect(readEffect(() => take2.value)).toBe(2);
   });
 
-  it('should handle most suitable case', () => {
+  it('should handle most common case', () => {
     const onSourceObserved = jest.fn();
     const onSourceUnobserved = jest.fn();
 

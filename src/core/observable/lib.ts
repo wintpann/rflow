@@ -142,4 +142,4 @@ export const createObservable = <T>(
 
 export const createDerivation = <T>(
   options: CreateDerivedObservable<T> | CreateInterceptedObservable<T>,
-) => createObservable<T>(undefined as T, options);
+) => createObservable<T>(null as T, options);

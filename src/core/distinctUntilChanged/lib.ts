@@ -10,8 +10,8 @@ import { DistinctUntilChanged } from './typings.ts';
 export const distinctUntilChanged: DistinctUntilChanged =
   <A>(comparer?: IEqualsComparer<A>) =>
   (source: Observable<A>): Observable<A> => {
-    const store: { lastValue?: A } = {
-      lastValue: undefined,
+    const store: { lastValue: A | null } = {
+      lastValue: null,
     };
 
     const compare = comparer ?? mobxComparer.shallow;

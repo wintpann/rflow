@@ -1,15 +1,15 @@
-export type FutureIdle = { data: undefined; error: undefined; state: 'idle' };
+export type FutureIdle = { data: null; error: null; state: 'idle' };
 
 export type FuturePending<A> = {
-  data: A | undefined;
-  error: undefined;
+  data: A | null;
+  error: null;
   state: 'pending';
 };
 
-export type FutureSuccess<A> = { data: A; error: undefined; state: 'success' };
+export type FutureSuccess<A> = { data: A; error: null; state: 'success' };
 
 export type FutureFailure<E = Error> = {
-  data: undefined;
+  data: null;
   error: E;
   state: 'failure';
 };
@@ -133,7 +133,7 @@ export interface FutureCombine {
 export interface FutureFold {
   <A, B, E>(
     onInitial: () => B,
-    onPending: (data: A | undefined) => B,
+    onPending: (data: A | null) => B,
     onFailure: (e: E) => B,
     onSuccess: (a: A) => B,
   ): (future: Future<A, E>) => B;

@@ -15,27 +15,27 @@ import {
 } from './typings.ts';
 
 const idle = <A, E = Error>(): Future<A, E> => ({
-  data: undefined,
-  error: undefined,
+  data: null,
+  error: null,
   state: 'idle',
 });
 
 const failure = <A, E = Error>(error: E): Future<A, E> => ({
   error,
   state: 'failure',
-  data: undefined,
+  data: null,
 });
 
 const of = <A, E = Error>(data: A): Future<A, E> => ({
-  error: undefined,
+  error: null,
   state: 'success',
   data,
 });
 
 const pending = <A, E = Error>(data?: A): Future<A, E> => ({
-  error: undefined,
+  error: null,
   state: 'pending',
-  data,
+  data: data ?? null,
 });
 
 const isPending = <A, E = Error>(
@@ -60,7 +60,7 @@ const map: FutureMap =
       return of(f(future.data));
     }
 
-    if (isPending(future) && future.data !== undefined) {
+    if (isPending(future) && future.data !== null) {
       return pending(f(future.data));
     }
 
@@ -84,7 +84,7 @@ const getOrElse: FutureGetOrElse =
       return future.data;
     }
 
-    if (isPending(future) && future.data !== undefined) {
+    if (isPending(future) && future.data !== null) {
       return future.data;
     }
 
@@ -100,7 +100,7 @@ const chain: FutureChain =
     if (isSuccess(future)) {
       return f(future.data);
     }
-    if (isPending(future) && future.data !== undefined) {
+    if (isPending(future) && future.data !== null) {
       return f(future.data);
     }
     return future as Future<B, E>;
@@ -119,7 +119,7 @@ const sequence = ((...list: Future<any, any>[]) => {
 
   const pendingDataOrSuccess = list.every(
     (future) =>
-      isSuccess(future) || (isPending(future) && future.data !== undefined),
+      isSuccess(future) || (isPending(future) && future.data !== null),
   );
   if (pendingDataOrSuccess) {
     return pending(list.map(({ data }) => data));
@@ -148,7 +148,7 @@ const combine = ((struct: Record<string, Future<any, any>>) => {
     return of(result);
   }
 
-  if (isPending(tupleSequence) && tupleSequence.data !== undefined) {
+  if (isPending(tupleSequence) && tupleSequence.data !== null) {
     const result: Record<string, any> = {};
     entries.forEach(([key, el]) => {
       result[key] = el.data;
@@ -165,7 +165,7 @@ const combine = ((struct: Record<string, Future<any, any>>) => {
 const fold: FutureFold =
   <A, B, E = Error>(
     onInitial: () => B,
-    onPending: (data: A | undefined) => B,
+    onPending: (data: A | null) => B,
     onFailure: (e: E) => B,
     onSuccess: (a: A) => B,
   ) =>
