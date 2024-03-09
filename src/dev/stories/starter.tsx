@@ -1,15 +1,14 @@
 import { observable } from '../../again';
 
-const text = observable('text', {
-  change: (value: string) => value,
+const text = observable('text').api({
+  change: (value) => value,
 });
 
-const repeatCount = observable(0, {
-  increase: () => 1,
+const lettersCount = observable(0).api({
+  set: () => lettersCount(),
 });
 
 window.text = text;
-window.repeatCount = repeatCount;
 
 export const Starter = () => {
   return null;

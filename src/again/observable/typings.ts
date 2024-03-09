@@ -10,32 +10,46 @@ export type ObserveFunction<Value> = (
   callback: (value: Value) => void,
 ) => UnobserveFunction;
 
-export type NoAPI = Record<string, never>;
+export type MissedAPI = Record<string, never>;
+export type NoAPI = Record<string, any>;
 
 export interface Callable<Value> {
   (): Value;
 }
 
+export type APIMixin<
+  Value,
+  OriginalAPI extends APIRecord<Value>,
+> = OriginalAPI extends MissedAPI
+  ? {
+      api: <NewAPI extends APIRecord<Value>>(
+        record: NewAPI,
+      ) => Observable<Value, NewAPI>;
+    }
+  : Record<string, never>;
+
+export type SanitizedAPI<API extends APIRecord<any>> = API extends Record<
+  'observe',
+  any
+>
+  ? never
+  : API extends Record<'api', any>
+  ? never
+  : API extends Record<'__type__', any>
+  ? never
+  : API;
+
 export type Observable<
   Value,
   API extends APIRecord<Value> = NoAPI,
 > = Callable<Value> &
-  API & {
+  SanitizedAPI<API> & {
     observe: ObserveFunction<Value>;
     __type__: 'observable';
-  };
+  } & APIMixin<Value, API>;
 
-export type NewObservable<
-  Value,
-  API extends APIRecord<Value>,
-> = API extends Record<'subscribe', any>
-  ? never
-  : API extends NoAPI
-  ? Observable<Value>
-  : Observable<Value, API>;
-
-export type CreateObservableOptions<Value, API extends APIRecord<Value>> = {
-  api?: API;
+export type CreateObservableOptions<Value> = {
+  enableAPI?: boolean;
   onObserved?: (callback: (value: Value) => void) => UnobserveFunction | void;
   onBecomesObserved?: () => UnobserveFunction | void;
   onReadValue?: () => void;
@@ -49,9 +63,6 @@ export type ObservableController<Value> = {
   hasScheduledUpdates: () => boolean;
 };
 
-export type CreateObservableOptionsFactory<
-  Value,
-  API extends APIRecord<Value>,
-> = (
+export type CreateObservableOptionsFactory<Value> = (
   controller: ObservableController<Value>,
-) => CreateObservableOptions<Value, API>;
+) => CreateObservableOptions<Value>;

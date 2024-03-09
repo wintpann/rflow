@@ -2,13 +2,15 @@ import { die, Lazy } from '../common';
 import { scheduler } from '../scheduler';
 import {
   APIRecord,
-  NewObservable,
-  NoAPI,
+  MissedAPI,
   Observable,
   CreateObservableOptions,
   CreateObservableOptionsFactory,
   ObservableController,
+  NoAPI,
 } from './typings.ts';
+
+const UNSUPPORTED_API_HANDLER_NAMES = new Set(['__type__', 'observe', 'api']);
 
 export const isObservable = <Value = any>(
   target: any,
@@ -16,10 +18,10 @@ export const isObservable = <Value = any>(
 
 export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
   value: Value,
-  options:
-    | CreateObservableOptions<Value, API>
-    | CreateObservableOptionsFactory<Value, API>,
-): NewObservable<Value, API> => {
+  options?:
+    | CreateObservableOptions<Value>
+    | CreateObservableOptionsFactory<Value>,
+): Observable<Value, API> => {
   const observers = new Set<Lazy>();
   let current = value;
 
@@ -46,35 +48,47 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
   const params = options instanceof Function ? options(controller) : options;
 
   const instance = (() => {
-    params.onReadValue?.();
+    params?.onReadValue?.();
     return current;
-  }) as Observable<Value, API>;
+  }) as Observable<Value, MissedAPI>;
   instance.__type__ = 'observable';
 
-  if (params.api) {
-    for (const [key, handler] of Object.entries(params.api)) {
-      if (key === 'subscribe') {
-        die('API handler cannot have a name of "subscribe"');
-      }
+  if (params?.enableAPI) {
+    instance.api = <NewAPI extends APIRecord<any>>(record: NewAPI) => {
+      for (const [key, handler] of Object.entries(record)) {
+        if (UNSUPPORTED_API_HANDLER_NAMES.has(key)) {
+          die(
+            `API handler cannot have a name of "${Array.from(
+              UNSUPPORTED_API_HANDLER_NAMES,
+            ).join(', ')}". Used "${key}"`,
+          );
+        }
 
-      instance[key as keyof API] = ((...args: any[]) => {
-        current = handler(...args);
-        controller.notifyObservers();
-      }) as Observable<Value, API>[keyof API];
-    }
+        instance[key] = ((...args: any[]) => {
+          current = handler(...args);
+          controller.notifyObservers();
+        }) as Observable<Value, NewAPI>[keyof NewAPI];
+      }
+      // @ts-ignore
+      delete instance.api;
+      return instance as unknown as Observable<Value, NewAPI>;
+    };
   }
 
   instance.observe = (callback) => {
-    const onUnobserved = params.onObserved?.(callback);
+    const onUnobserved = params?.onObserved?.(callback);
     const observer = () => callback(current);
     observers.add(observer);
+
     const becameObserved = observers.size === 1;
     const onBecomesUnobserved = becameObserved
-      ? params.onBecomesObserved?.()
+      ? params?.onBecomesObserved?.()
       : undefined;
+
     return () => {
       onUnobserved?.();
       observers.delete(observer);
+
       const becameUnobserved = observers.size === 0;
       if (becameUnobserved) {
         onBecomesUnobserved?.();
@@ -82,10 +96,8 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
     };
   };
 
-  return instance as NewObservable<Value, API>;
+  return instance as unknown as Observable<Value, API>;
 };
 
-export const observable = <Value, API extends APIRecord<Value> = NoAPI>(
-  value: Value,
-  api?: API,
-): NewObservable<Value, API> => createObservable(value, { api });
+export const observable = <Value>(value: Value) =>
+  createObservable<Value, MissedAPI>(value, { enableAPI: true });
