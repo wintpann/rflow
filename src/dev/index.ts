@@ -1,5 +1,4 @@
-import { CreateObservable } from './stories/createObservable.tsx';
 import './expose-window.ts';
-import { FromEvent } from './stories/fromEvent.tsx';
+import { Starter } from './stories/starter.tsx';
 
-export const stories = { CreateObservable, FromEvent };
+export const stories = { Starter };
