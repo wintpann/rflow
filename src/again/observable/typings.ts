@@ -4,11 +4,11 @@ export type APIHandler<Value> = (...args: any[]) => Value;
 
 export type APIRecord<Value> = Record<string, APIHandler<Value>>;
 
-export type UnsubscribeFunction = Lazy;
+export type UnobserveFunction = Lazy;
 
-export type SubscribeFunction<Value> = (
+export type ObserveFunction<Value> = (
   callback: (value: Value) => void,
-) => UnsubscribeFunction;
+) => UnobserveFunction;
 
 export type NoAPI = Record<string, never>;
 
@@ -16,14 +16,14 @@ export interface Callable<Value> {
   (): Value;
 }
 
-export interface Subscribable<Value> {
-  subscribe: SubscribeFunction<Value>;
-}
-
 export type Observable<
   Value,
   API extends APIRecord<Value> = NoAPI,
-> = Callable<Value> & Subscribable<Value> & API;
+> = Callable<Value> &
+  API & {
+    observe: ObserveFunction<Value>;
+    __type__: 'observable';
+  };
 
 export type NewObservable<
   Value,
@@ -34,14 +34,24 @@ export type NewObservable<
   ? Observable<Value>
   : Observable<Value, API>;
 
-export type CreateObservableParams<Value, API extends APIRecord<Value>> = {
-  value: { current: Value };
+export type CreateObservableOptions<Value, API extends APIRecord<Value>> = {
   api?: API;
-  onSubscribed?: () => UnsubscribeFunction | void;
+  onObserved?: (callback: (value: Value) => void) => UnobserveFunction | void;
+  onBecomesObserved?: () => UnobserveFunction | void;
   onReadValue?: () => void;
-  onNotifyValue?: () => void;
 };
 
-export type ObservableController = {
-  notifySubscribers: () => void;
+export type ObservableSetValue<Value> = Value | ((previous: Value) => Value);
+
+export type ObservableController<Value> = {
+  notifyObservers: () => void;
+  setValue: (value: ObservableSetValue<Value>) => void;
+  hasScheduledUpdates: () => boolean;
 };
+
+export type CreateObservableOptionsFactory<
+  Value,
+  API extends APIRecord<Value>,
+> = (
+  controller: ObservableController<Value>,
+) => CreateObservableOptions<Value, API>;

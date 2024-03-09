@@ -1,33 +1,45 @@
-import { createObservable, Observable } from '../observable';
+import { createObservable, isObservable, Observable } from '../observable';
 import { Combine } from './typings.ts';
 
 export const combine: Combine = (
-  ...observables: Observable<any>[]
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  ...items: Function[]
 ): Observable<any> => {
-  const value = { current: null as any };
-  let initialized = false;
+  const observables = items.filter(isObservable);
+  const lastItem = items[items.length - 1];
+  const project = isObservable(lastItem) ? undefined : lastItem;
 
-  return createObservable((controller) => ({
-    value,
-    onReadValue: () => {
-      if (!initialized) {
-        value.current = observables.map((observable) => observable());
-        initialized = true;
-      }
-    },
-    onNotifyValue: () => {
-      value.current = observables.map((observable) => observable());
-    },
-    onSubscribed: () => {
-      const subscriber = () => controller.notifySubscribers();
-      const unsubscribes = observables.map((observable) =>
-        observable.subscribe(subscriber),
-      );
-      return () => {
-        for (const unsubscribe of unsubscribes) {
-          unsubscribe();
+  let observed = false;
+
+  const value = () => {
+    const observableValues = observables.map((observable) => observable());
+    return project ? project(observableValues) : observableValues;
+  };
+
+  return createObservable(
+    value(),
+    ({ setValue, notifyObservers, hasScheduledUpdates }) => ({
+      onReadValue: () => {
+        if (!observed || hasScheduledUpdates()) {
+          setValue(value());
         }
-      };
-    },
-  }));
+      },
+      onBecomesObserved: () => {
+        observed = true;
+        const unobservers = observables.map((observable) =>
+          observable.observe(() => {
+            setValue(value());
+            notifyObservers();
+          }),
+        );
+
+        return () => {
+          observed = false;
+          for (const unobserve of unobservers) {
+            unobserve();
+          }
+        };
+      },
+    }),
+  );
 };
