@@ -47,11 +47,16 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
   };
 
   const params = options instanceof Function ? options(controller) : options;
+  const onReadValue = params?.onReadValue;
 
-  const instance = (() => {
-    params?.onReadValue?.();
-    return current;
-  }) as Observable<Value, MissedAPI>;
+  const readValue = onReadValue
+    ? () => {
+        onReadValue();
+        return current;
+      }
+    : () => current;
+
+  const instance = (() => readValue()) as Observable<Value, MissedAPI>;
   instance.__type__ = 'observable';
 
   if (params?.enableAPI) {
