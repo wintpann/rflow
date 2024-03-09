@@ -3,6 +3,9 @@ import { Lazy } from '../common';
 export type APIHandler<Value> = (...args: any[]) => Value;
 
 export type APIRecord<Value> = Record<string, APIHandler<Value>>;
+export type CreateAPIRecord<Value, API extends APIRecord<Value>> =
+  | ((self: Lazy<Value>) => API)
+  | API;
 
 export type UnobserveFunction = Lazy;
 
@@ -23,7 +26,7 @@ export type APIMixin<
 > = OriginalAPI extends MissedAPI
   ? {
       api: <NewAPI extends APIRecord<Value>>(
-        record: NewAPI,
+        create: CreateAPIRecord<Value, NewAPI>,
       ) => Observable<Value, NewAPI>;
     }
   : Record<string, never>;

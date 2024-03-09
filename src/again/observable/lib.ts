@@ -8,6 +8,7 @@ import {
   CreateObservableOptionsFactory,
   ObservableController,
   NoAPI,
+  CreateAPIRecord,
 } from './typings.ts';
 
 const UNSUPPORTED_API_HANDLER_NAMES = new Set(['__type__', 'observe', 'api']);
@@ -54,7 +55,11 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
   instance.__type__ = 'observable';
 
   if (params?.enableAPI) {
-    instance.api = <NewAPI extends APIRecord<any>>(record: NewAPI) => {
+    instance.api = <NewAPI extends APIRecord<any>>(
+      create: CreateAPIRecord<Value, NewAPI>,
+    ) => {
+      const record =
+        create instanceof Function ? create(() => current) : create;
       for (const [key, handler] of Object.entries(record)) {
         if (UNSUPPORTED_API_HANDLER_NAMES.has(key)) {
           die(
