@@ -1,6 +1,10 @@
 import { Observable } from '../observable';
 
 export interface Combine {
+  <S extends Record<string, Observable<unknown>>>(struct: S): Observable<{
+    [K in keyof S]: S[K] extends Observable<infer R> ? R : never;
+  }>;
+
   <A>(a: Observable<A>): Observable<[A]>;
 
   <A, B>(a: Observable<A>, b: Observable<B>): Observable<[A, B]>;
