@@ -9,6 +9,7 @@ import {
   ObservableController,
   NoAPI,
   CreateAPIRecord,
+  UnobserveFunction,
 } from './typings.ts';
 
 const UNSUPPORTED_API_HANDLER_NAMES = new Set(['__type__', 'observe', 'api']);
@@ -24,6 +25,7 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
     | CreateObservableOptionsFactory<Value>,
 ): Observable<Value, API> => {
   const observers = new Set<Lazy>();
+  let onBecomesUnobserved: UnobserveFunction | void;
   let current = value;
 
   const runObservers = () => {
@@ -75,8 +77,11 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
         }
 
         instance[key] = ((...args: any[]) => {
-          current = handler(...args);
-          controller.notifyObservers();
+          const value = handler(...args);
+          if (value !== current) {
+            current = value;
+            controller.notifyObservers();
+          }
         }) as Observable<Value, NewAPI>[keyof NewAPI];
       }
       // @ts-ignore
@@ -91,9 +96,10 @@ export const createObservable = <Value, API extends APIRecord<Value> = NoAPI>(
     observers.add(observer);
 
     const becameObserved = observers.size === 1;
-    const onBecomesUnobserved = becameObserved
-      ? params?.onBecomesObserved?.()
-      : undefined;
+    const onBUO = becameObserved ? params?.onBecomesObserved?.() : undefined;
+    if (onBUO) {
+      onBecomesUnobserved = onBUO;
+    }
 
     return () => {
       onUnobserved?.();

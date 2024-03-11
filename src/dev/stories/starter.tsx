@@ -1,4 +1,4 @@
-import { combine, map, observable, pipe } from '../../again';
+import { combine, map, observable, pipe, createObservable } from '../../again';
 
 const text = observable('').api({
   change: (value: string) => value,
@@ -22,6 +22,7 @@ window.text = text;
 window.count = count;
 window.trimmed = trimmed;
 window.trimStruct = trimStruct;
+window.createObservable = createObservable;
 
 text.observe((v) => console.log('LOOOG text', v));
 count.observe((v) => console.log('LOOOG count', v));
