@@ -1,33 +1,22 @@
-import { combine, map, observable, pipe, createObservable } from '../../again';
+import { observable } from '../../finally';
 
-const text = observable('').api({
-  change: (value: string) => value,
+const count = observable(0).create({
+  api: (next) => ({
+    increase: () => next((prev) => prev + 1),
+  }),
 });
 
-const count = observable(0).api((count) => ({
-  increase: () => count() + 1,
-}));
+const text = observable('').create({
+  api: (next) => ({
+    change: (text: string) => next(text),
+  }),
+});
 
-const trimmed = pipe(
-  combine(text, count),
-  map(([text, count]) => text.substring(0, count)),
-);
+count.observe((value) => console.log('LOOOG count', value));
+text.observe((value) => console.log('LOOOG text', value));
 
-const trimStruct = pipe(
-  combine({ text, count }),
-  map(({ text, count }) => text.substring(0, count)),
-);
-
-window.text = text;
 window.count = count;
-window.trimmed = trimmed;
-window.trimStruct = trimStruct;
-window.createObservable = createObservable;
-
-text.observe((v) => console.log('LOOOG text', v));
-count.observe((v) => console.log('LOOOG count', v));
-trimmed.observe((v) => console.log('LOOOG trimmed', v));
-trimStruct.observe((v) => console.log('LOOOG trimStruct', v));
+window.text = text;
 
 export const Starter = () => {
   return null;
