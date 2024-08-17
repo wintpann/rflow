@@ -1,8 +1,6 @@
-import { APIRecord, Observable } from './observable';
+import { Observable } from './observable';
 
-export const observe = <Value, API extends APIRecord>(
-  observable: Observable<Value, API>,
-) => {
+export const observe = <Value>(observable: Observable<Value>) => {
   const updates = {
     current: [] as Value[],
     get last() {
@@ -17,6 +15,4 @@ export const observe = <Value, API extends APIRecord>(
   return { updates, dispose };
 };
 
-export const read = <Value, API extends APIRecord>(
-  observable: Observable<Value, API>,
-) => observable();
+export const read = <Value>(observable: Observable<Value>) => observable();
