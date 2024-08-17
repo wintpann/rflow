@@ -2,15 +2,16 @@ import {
   APIRecord,
   CreateOptions,
   NewObservable,
+  Next,
   NoAPI,
   Observable,
   ObservableInternals,
   onBecomesUnobserved,
 } from './typings.ts';
-import { Lazy, die } from '../common';
+import { Lazy, die, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
-const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type__', 'observe']);
+const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type__', 'observe', 'pipe']);
 
 export const isObservable = <Value = any>(
   target: any,
@@ -33,11 +34,15 @@ export const newObservable = <Value>(value: Value) => ({
     };
 
     const internals: ObservableInternals<Value> = {
-      next: (value) => {
+      next: (value, options) => {
+        const scheduleUpdate = options?.scheduleUpdate ?? true;
         const updated = value instanceof Function ? value(current) : value;
+
         if (updated !== current) {
           current = updated;
-          scheduler.schedule(callObservers);
+          if (scheduleUpdate) {
+            scheduler.schedule(callObservers);
+          }
         }
       },
       hasScheduledUpdate: () => scheduler.isScheduled(callObservers),
@@ -56,7 +61,8 @@ export const newObservable = <Value>(value: Value) => ({
     instance.$type = 'observable';
 
     if (api) {
-      const record = api(internals.next);
+      const next: Next<Value> = (value) => internals.next(value);
+      const record = api(next);
       for (const [key, handler] of Object.entries(record)) {
         if (UNSUPPORTED_API_HANDLER_NAMES.has(key)) {
           die(
@@ -90,6 +96,9 @@ export const newObservable = <Value>(value: Value) => ({
         observed = observers.size > 0;
       };
     };
+
+    // @ts-ignore
+    instance.pipe = (...fns: any[]): any => pipe(instance, ...fns);
 
     return instance as Observable<Value, API>;
   },
