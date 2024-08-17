@@ -5,23 +5,25 @@ import {
   NoAPI,
   Observable,
   ObservableInternals,
+  onBecomesUnobserved,
 } from './typings.ts';
 import { Lazy, die } from '../common';
 import { scheduler } from '../scheduler';
-
-export const $type = Symbol('observable');
 
 const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type__', 'observe']);
 
 export const isObservable = <Value = any>(
   target: any,
-): target is Observable<Value> => target?.$type === $type;
+): target is Observable<Value> => target?.$type === 'observable';
 
 export const newObservable = <Value>(value: Value) => ({
   create: <API extends APIRecord = NoAPI>({
     api,
+    reflect,
   }: CreateOptions<Value, API> = {}) => {
     const observers = new Set<Lazy>();
+    let onBecomesUnobserved: onBecomesUnobserved | void;
+    let observed = false;
     let current = value;
 
     const callObservers = () => {
@@ -38,11 +40,20 @@ export const newObservable = <Value>(value: Value) => ({
           scheduler.schedule(callObservers);
         }
       },
-      hasScheduledUpdates: () => scheduler.isScheduled(callObservers),
+      hasScheduledUpdate: () => scheduler.isScheduled(callObservers),
+      isObserved: () => observed,
     };
 
-    const instance = (() => current) as Observable<Value, API>;
-    instance.$type = $type;
+    const onRead = reflect?.onRead;
+    const read = onRead
+      ? () => {
+          onRead(internals);
+          return current;
+        }
+      : () => current;
+
+    const instance = read as Observable<Value, API>;
+    instance.$type = 'observable';
 
     if (api) {
       const record = api(internals.next);
@@ -54,16 +65,30 @@ export const newObservable = <Value>(value: Value) => ({
             ).join(', ')}". Used "${key}"`,
           );
         }
-        instance[key as keyof API] = ((...args: any[]) => {
-          handler(...args);
-        }) as Observable<Value, API>[keyof API];
+        instance[key as keyof API] = handler as Observable<
+          Value,
+          API
+        >[keyof API];
       }
     }
 
     instance.observe = (callback) => {
       const observer = () => callback(current);
       observers.add(observer);
-      return () => observers.delete(observer);
+      const becameObserved = !observed;
+      if (becameObserved && reflect?.onBecomesObserved) {
+        onBecomesUnobserved = reflect.onBecomesObserved(internals);
+      }
+      observed = true;
+
+      return () => {
+        observers.delete(observer);
+        const becameUnobserved = observers.size === 0;
+        if (becameUnobserved && onBecomesUnobserved) {
+          onBecomesUnobserved(internals);
+        }
+        observed = observers.size > 0;
+      };
     };
 
     return instance as Observable<Value, API>;

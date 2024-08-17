@@ -1,11 +1,10 @@
-import { createObservable, isObservable } from './lib.ts';
-import { read, observe } from '../test-utils.ts';
-import { MissedAPI } from './typings.ts';
+import { observable, isObservable } from './lib.ts';
+import { observe, read } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
 
-describe('createObservable', () => {
+describe('observable', () => {
   it('should create observable', () => {
-    const source = createObservable({ a: 1, b: 2 });
+    const source = observable({ a: 1, b: 2 }).create();
     expect(source()).toStrictEqual({ a: 1, b: 2 });
     expect(isObservable(source)).toBe(true);
     expect(isObservable(() => undefined)).toBe(false);
@@ -13,60 +12,45 @@ describe('createObservable', () => {
     expect(isObservable(2)).toBe(false);
   });
 
-  it('should call onObserved/onUnobserved & onBecomesObserved/onBecomesUnobserved', () => {
-    const onObserved = jest.fn();
-    const onUnobserved = jest.fn();
+  it('should call onBecomesObserved/onBecomesUnobserved', () => {
     const onBecomesObserved = jest.fn();
     const onBecomesUnobserved = jest.fn();
 
-    const source = createObservable('0', {
-      onObserved: () => {
-        onObserved();
-        return onUnobserved;
-      },
-      onBecomesObserved: () => {
-        onBecomesObserved();
-        return onBecomesUnobserved;
+    const source = observable('0').create({
+      reflect: {
+        onBecomesObserved: () => {
+          onBecomesObserved();
+          return onBecomesUnobserved;
+        },
       },
     });
 
     read(source);
-    expect(onObserved).not.toHaveBeenCalled();
-    expect(onUnobserved).not.toHaveBeenCalled();
     expect(onBecomesObserved).not.toHaveBeenCalled();
     expect(onBecomesUnobserved).not.toHaveBeenCalled();
 
     const run1 = observe(source);
-    expect(onObserved).toHaveBeenCalledTimes(1);
-    expect(onUnobserved).not.toHaveBeenCalled();
     expect(onBecomesObserved).toHaveBeenCalledTimes(1);
     expect(onBecomesUnobserved).not.toHaveBeenCalled();
 
     const run2 = observe(source);
-    expect(onObserved).toHaveBeenCalledTimes(2);
-    expect(onUnobserved).not.toHaveBeenCalled();
     expect(onBecomesObserved).toHaveBeenCalledTimes(1);
     expect(onBecomesUnobserved).not.toHaveBeenCalled();
 
     run1.dispose();
-    expect(onUnobserved).toHaveBeenCalledTimes(1);
     expect(onBecomesUnobserved).toHaveBeenCalledTimes(0);
 
     run2.dispose();
-    expect(onUnobserved).toHaveBeenCalledTimes(2);
     expect(onBecomesUnobserved).toHaveBeenCalledTimes(1);
   });
 
   it('should create api & update value', () => {
-    const source = createObservable<{ count: number }, MissedAPI>(
-      { count: 0 },
-      {
-        enableAPI: true,
-      },
-    ).api((self) => ({
-      increase: () => ({ count: self().count + 1 }),
-      set: (count: number) => ({ count }),
-    }));
+    const source = observable({ count: 0 }).create({
+      api: (next) => ({
+        increase: () => next((prev) => ({ count: prev.count + 1 })),
+        set: (count: number) => next({ count }),
+      }),
+    });
 
     const run1 = observe(source);
     scheduler.flush();
@@ -85,11 +69,10 @@ describe('createObservable', () => {
 
   it('should not notify observers if value not shallow changed', () => {
     const initial = { a: 0, b: 0 };
-    const source = createObservable<{ a: number; b: number }, MissedAPI>(
-      initial,
-      { enableAPI: true },
-    ).api({
-      set: (value: { a: number; b: number }) => value,
+    const source = observable(initial).create({
+      api: (next) => ({
+        set: (value: typeof initial) => next(value),
+      }),
     });
 
     const run1 = observe(source);
@@ -109,11 +92,11 @@ describe('createObservable', () => {
   });
 
   it('should schedule multiple sync updates', () => {
-    const source = createObservable<number, MissedAPI>(0, {
-      enableAPI: true,
-    }).api((self) => ({
-      increase: () => self() + 1,
-    }));
+    const source = observable(0).create({
+      api: (next) => ({
+        increase: () => next((prev) => prev + 1),
+      }),
+    });
 
     const run1 = observe(source);
     source.increase();

@@ -32,32 +32,30 @@ export type SanitizedAPI<API extends APIRecord> = API extends Record<
 export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
   SanitizedAPI<API> & {
     observe: ObserveFunction<Value>;
-    $type: symbol;
+    $type: 'observable';
   };
 
 export type ObservableInternals<Value> = {
   next: Next<Value>;
-  hasScheduledUpdates: () => boolean;
+  hasScheduledUpdate: () => boolean;
+  isObserved: () => boolean;
+};
+
+export type onBecomesUnobserved = <Value>(
+  internals: ObservableInternals<Value>,
+) => void;
+
+export type ReflectOptions<Value> = {
+  onBecomesObserved?: (
+    internals: ObservableInternals<Value>,
+  ) => onBecomesUnobserved | void;
+  onRead?: (internals: ObservableInternals<Value>) => void;
 };
 
 export type CreateOptions<Value, API extends APIRecord> = {
   api?: CreateAPI<Value, API>;
+  reflect?: ReflectOptions<Value>;
 };
-
-export type OnBecomesObserved = <Value>(
-  observable: Observable<Value>,
-  callback: (internals: ObservableInternals<Value>) => void,
-) => UnobserveFunction;
-
-export type OnBecomesUnobserved = <Value>(
-  observable: Observable<Value>,
-  callback: (internals: ObservableInternals<Value>) => void,
-) => UnobserveFunction;
-
-export type OnReadValue = <Value>(
-  observable: Observable<Value>,
-  callback: (internals: ObservableInternals<Value>) => void,
-) => UnobserveFunction;
 
 export type CreateObservable<Value> = {
   create: <API extends APIRecord = NoAPI>(
