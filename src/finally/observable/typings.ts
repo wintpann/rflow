@@ -18,7 +18,7 @@ export type ObserveFunction<Value> = (
   callback: (value: Value) => void,
 ) => UnobserveFunction;
 
-export type NoAPI = Record<string, never>;
+export type NoAPI = Record<string, any>;
 
 export type SanitizedAPI<API extends APIRecord> = API extends Record<
   'observe',
