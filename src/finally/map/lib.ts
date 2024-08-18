@@ -1,4 +1,4 @@
-import { observable, Observable } from '../observable';
+import { observable, Observable, reflect } from '../observable';
 
 export const map =
   <A, B>(fn: (a: A) => B) =>
@@ -8,8 +8,8 @@ export const map =
     return observable(value()).create({
       reflect: {
         onRead: ({ next, isObserved }) => {
-          if (!isObserved()) {
-            next(value());
+          if (!isObserved() || reflect(source).hasScheduledUpdate()) {
+            next(value(), { scheduleUpdate: false });
           }
         },
         onBecomesObserved: ({ next }) => source.observe(() => next(value())),

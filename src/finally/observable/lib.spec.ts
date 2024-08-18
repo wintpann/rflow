@@ -1,15 +1,45 @@
-import { observable, isObservable } from './lib.ts';
+import { observable, isObservable, of } from './lib.ts';
 import { observe, read } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
 
 describe('observable', () => {
   it('should create observable', () => {
-    const source = observable({ a: 1, b: 2 }).create();
+    const source = of({ a: 1, b: 2 });
     expect(source()).toStrictEqual({ a: 1, b: 2 });
     expect(isObservable(source)).toBe(true);
     expect(isObservable(() => undefined)).toBe(false);
     expect(isObservable({})).toBe(false);
     expect(isObservable(2)).toBe(false);
+  });
+
+  it('should not create if unsupported handler', () => {
+    const thrown = {
+      $type: false,
+      observe: false,
+      pipe: false,
+    };
+    try {
+      observable(0).create({
+        api: (next) => ({ $type: next }),
+      });
+    } catch (e) {
+      thrown.$type = true;
+    }
+    try {
+      observable(0).create({
+        api: (next) => ({ observe: next }),
+      });
+    } catch (e) {
+      thrown.observe = true;
+    }
+    try {
+      observable(0).create({
+        api: (next) => ({ pipe: next }),
+      });
+    } catch (e) {
+      thrown.pipe = true;
+    }
+    expect(thrown).toStrictEqual({ $type: true, observe: true, pipe: true });
   });
 
   it('should call onBecomesObserved/onBecomesUnobserved', () => {
@@ -53,7 +83,6 @@ describe('observable', () => {
     });
 
     const run1 = observe(source);
-    scheduler.flush();
     expect(run1.updates.current).toStrictEqual([]);
 
     source.set(1);

@@ -11,7 +11,8 @@ import {
 import { Lazy, die, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
-const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type__', 'observe', 'pipe']);
+const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type', 'observe', 'pipe']);
+const INTERNALS_KEY = Symbol('internals');
 
 export const isObservable = <Value = any>(
   target: any,
@@ -59,6 +60,7 @@ export const newObservable = <Value>(value: Value) => ({
 
     const instance = read as Observable<Value, API>;
     instance.$type = 'observable';
+    (instance as any)[INTERNALS_KEY] = internals;
 
     if (api) {
       const next: Next<Value> = (value) => internals.next(value);
@@ -105,3 +107,14 @@ export const newObservable = <Value>(value: Value) => ({
 });
 
 export const observable = newObservable as NewObservable;
+
+export const of = <Value>(
+  value: Value,
+): Observable<Value, { next: Next<Value> }> =>
+  observable<Value>(value).create({
+    api: (next) => ({ next }),
+  });
+
+export const reflect = <Value>(
+  observable: Observable<Value, NonNullable<unknown>>,
+): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];

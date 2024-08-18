@@ -42,10 +42,13 @@ export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
     $type: 'observable';
   };
 
+export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
+  ReturnType<T>;
+
 export type ObservableInternals<Value> = {
   next: NextInternal<Value>;
-  hasScheduledUpdate: () => boolean;
-  isObserved: () => boolean;
+  hasScheduledUpdate: Lazy<boolean>;
+  isObserved: Lazy<boolean>;
 };
 
 export type onBecomesUnobserved = <Value>(
