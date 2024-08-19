@@ -1,4 +1,4 @@
-import { observable } from '../../finally';
+import { combine, map, observable } from '../../finally';
 
 const count = observable(0).create({
   api: (next) => ({
@@ -12,9 +12,15 @@ const text = observable('').create({
   }),
 });
 
+const trimmed = combine({ text, count }).pipe(
+  map(({ text, count }) => text.substring(0, count)),
+);
+
 count.observe((value) => console.log('LOOOG count', value));
 text.observe((value) => console.log('LOOOG text', value));
+trimmed.observe((value) => console.log('LOOOG trimmed', value));
 
+window.trimmed = trimmed;
 window.count = count;
 window.text = text;
 
