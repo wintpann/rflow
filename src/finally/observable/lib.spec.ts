@@ -1,6 +1,9 @@
 import { observable, isObservable, of } from './lib.ts';
 import { observe, read } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
+import { combine } from '../combine';
+import { map } from '../map';
+import { distinctUntilChanged } from '../distinctUntilChanged';
 
 describe('observable', () => {
   it('should create observable', () => {
@@ -138,5 +141,22 @@ describe('observable', () => {
     source.increase();
     scheduler.flush();
     expect(run1.updates.current).toStrictEqual([1, 5]);
+  });
+
+  it('should now when hasScheduledUpdates all the parents up', () => {
+    const parent1 = of(1);
+    const parent2 = of('1');
+
+    const down1 = combine(parent1, parent2);
+    const down2 = down1.pipe(map(([v1, v2]) => `${v1}${v2}`));
+    const down3 = down2.pipe(distinctUntilChanged());
+
+    const run1 = observe(down3);
+    parent1.next(2);
+    parent2.next('2');
+    expect(down3()).toBe('22');
+    scheduler.flush();
+
+    run1.dispose();
   });
 });

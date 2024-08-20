@@ -94,14 +94,17 @@ describe('map', () => {
     run1.dispose();
   });
 
+  // on read BUT the case is >> reflect(source).hasScheduledUpdate()
   it('should not schedule update on read with coming update from source', () => {
     const doubledObserve = jest.fn();
 
     const source = of(1);
     const doubled = source.pipe(map((v) => v * 2));
 
+    // not relevant, should be vice versa, but not working as expected cause read() sets new value
     source.next(2);
     const dispose1 = doubled.observe(doubledObserve);
+
     read(doubled);
     scheduler.flush();
 
