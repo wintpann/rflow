@@ -1,26 +1,17 @@
-import { combine, map, observable } from '../../finally';
+import { combine, map, of } from '../../finally';
 
-const count = observable(0).create({
-  api: (next) => ({
-    increase: () => next((prev) => prev + 1),
-  }),
-});
-
-const text = observable('').create({
-  api: (next) => ({
-    change: (text: string) => next(text),
-  }),
-});
-
-const trimmed = combine({ text, count }).pipe(
-  map(({ text, count }) => text.substring(0, count)),
-);
+const count = of(1);
+const text = of('1');
+const doubled = count.pipe(map((v) => v * 2));
+const combined = combine({ text, count });
 
 count.observe((value) => console.log('LOOOG count', value));
 text.observe((value) => console.log('LOOOG text', value));
-trimmed.observe((value) => console.log('LOOOG trimmed', value));
+doubled.observe((value) => console.log('LOOOG doubled', value));
+combined.observe((value) => console.log('LOOOG combined', value));
 
-window.trimmed = trimmed;
+window.doubled = doubled;
+window.combined = combined;
 window.count = count;
 window.text = text;
 

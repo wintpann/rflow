@@ -12,7 +12,7 @@ export const map =
             next(value(), { scheduleUpdate: false });
           }
         },
-        onBecomesObserved: ({ next }) => source.observe(() => next(value())),
+        onBecomesObserved: ({ next }) => source.observe((v) => next(fn(v))),
       },
     });
   };

@@ -88,10 +88,11 @@ describe('map', () => {
 
     source.next(2);
     read(doubled);
-    doubled.observe(doubledObserve);
+    const dispose1 = doubled.observe(doubledObserve);
     scheduler.flush();
 
     expect(doubledObserve).not.toHaveBeenCalled();
+    dispose1();
   });
 
   it('should force calculating value if observed but source has coming update', () => {
