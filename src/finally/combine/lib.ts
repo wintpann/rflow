@@ -29,6 +29,7 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
         }
       },
       onBecomesObserved: ({ next }) => {
+        next(value(), { scheduleUpdate: false });
         const unobservers = observables.map((observable) =>
           observable.observe(() => next(value())),
         );

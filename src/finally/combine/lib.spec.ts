@@ -66,4 +66,18 @@ describe('combine', () => {
     expect(combinedObserve).not.toHaveBeenCalled();
     dispose1();
   });
+
+  it('should get actual value after subscription when source has changed & updated', () => {
+    const [text, count] = [of('text'), of(0)];
+    const combined = combine(text, count);
+
+    text.next('1');
+    count.next(1);
+    scheduler.flush();
+    const run1 = observe(combined);
+    expect(combined()).toStrictEqual(['1', 1]);
+    scheduler.flush();
+
+    run1.dispose();
+  });
 });

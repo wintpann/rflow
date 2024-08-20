@@ -108,4 +108,16 @@ describe('map', () => {
     expect(doubledObserve).not.toHaveBeenCalled();
     dispose1();
   });
+
+  it('should get actual value after subscription when source has changed & updated', () => {
+    const source = of(1);
+    const doubled = source.pipe(map((v) => v * 2));
+
+    source.next(2);
+    source.next(3);
+    scheduler.flush();
+    const run1 = observe(doubled);
+    expect(doubled()).toBe(6);
+    run1.dispose();
+  });
 });
