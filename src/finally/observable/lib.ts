@@ -8,7 +8,7 @@ import {
   ObservableInternals,
   onBecomesUnobserved,
 } from './typings.ts';
-import { Lazy, die, pipe } from '../common';
+import { die, Lazy, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
 const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type', 'observe', 'pipe']);
@@ -24,26 +24,26 @@ export const newObservable = <Value>(value: Value) => ({
     reflect,
   }: CreateOptions<Value, API> = {}) => {
     const observers = new Set<Lazy>();
+    let nextUpdateObservers = new Set<Lazy>();
     let onBecomesUnobserved: onBecomesUnobserved | void;
     let observed = false;
     let current = value;
 
     const callObservers = () => {
-      for (const observer of observers.values()) {
-        observer();
+      for (const observer of nextUpdateObservers.values()) {
+        if (observers.has(observer)) {
+          observer();
+        }
       }
     };
 
     const internals: ObservableInternals<Value> = {
       next: (value, options) => {
         const scheduleUpdate = options?.scheduleUpdate ?? true;
-        const updated = value instanceof Function ? value(current) : value;
-
-        if (updated !== current) {
-          current = updated;
-          if (scheduleUpdate) {
-            scheduler.schedule(callObservers);
-          }
+        current = value instanceof Function ? value(current) : value;
+        if (scheduleUpdate) {
+          nextUpdateObservers = new Set(observers);
+          scheduler.schedule(callObservers);
         }
       },
       hasScheduledUpdate: () => scheduler.isScheduled(callObservers),

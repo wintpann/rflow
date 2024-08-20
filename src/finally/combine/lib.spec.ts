@@ -1,6 +1,6 @@
 import { of } from '../observable';
 import { combine } from './lib.ts';
-import { observe } from '../test-utils.ts';
+import { observe, read } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
 
 describe('combine', () => {
@@ -39,18 +39,18 @@ describe('combine', () => {
     expect(run1.updates.current).toStrictEqual([['2', 2]]);
   });
 
-  /*  it('should not schedule update on unobserved read', () => {
+  it('should not schedule update on read with coming update from source', () => {
     const [text, count] = [of('text'), of(0)];
     const combined = combine(text, count);
     const combinedObserve = jest.fn();
 
     text.next('1');
     count.next(1);
-    read(combined);
     const dispose1 = combined.observe(combinedObserve);
+    read(combined);
     scheduler.flush();
 
     expect(combinedObserve).not.toHaveBeenCalled();
     dispose1();
-  })*/
+  });
 });

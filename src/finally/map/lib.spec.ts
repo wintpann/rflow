@@ -80,21 +80,6 @@ describe('map', () => {
     run3.dispose();
   });
 
-  it('should not schedule update on unobserved read', () => {
-    const doubledObserve = jest.fn();
-
-    const source = of(1);
-    const doubled = source.pipe(map((v) => v * 2));
-
-    source.next(2);
-    read(doubled);
-    const dispose1 = doubled.observe(doubledObserve);
-    scheduler.flush();
-
-    expect(doubledObserve).not.toHaveBeenCalled();
-    dispose1();
-  });
-
   it('should force calculating value if observed but source has coming update', () => {
     const source = of(1);
     const doubler: (num: number) => number = jest.fn((v) => v * 2);
@@ -107,5 +92,20 @@ describe('map', () => {
     expect(doubler).toHaveBeenCalledTimes(3);
 
     run1.dispose();
+  });
+
+  it('should not schedule update on read with coming update from source', () => {
+    const doubledObserve = jest.fn();
+
+    const source = of(1);
+    const doubled = source.pipe(map((v) => v * 2));
+
+    source.next(2);
+    const dispose1 = doubled.observe(doubledObserve);
+    read(doubled);
+    scheduler.flush();
+
+    expect(doubledObserve).not.toHaveBeenCalled();
+    dispose1();
   });
 });
