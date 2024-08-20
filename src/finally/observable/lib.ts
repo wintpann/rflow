@@ -40,11 +40,12 @@ export const newObservable = <Value>(value: Value) => ({
     const internals: ObservableInternals<Value> = {
       next: (value, options) => {
         const scheduleUpdate = options?.scheduleUpdate ?? true;
-        current = value instanceof Function ? value(current) : value;
-        if (scheduleUpdate) {
+        const updated = value instanceof Function ? value(current) : value;
+        if (scheduleUpdate && updated !== current) {
           nextUpdateObservers = new Set(observers);
           scheduler.schedule(callObservers);
         }
+        current = updated;
       },
       hasScheduledUpdate: () => scheduler.isScheduled(callObservers),
       isObserved: () => observed,

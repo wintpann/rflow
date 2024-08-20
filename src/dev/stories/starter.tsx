@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { combine, map, of } from '../../finally';
 
 const count = of(1);

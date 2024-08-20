@@ -39,6 +39,19 @@ describe('combine', () => {
     expect(run1.updates.current).toStrictEqual([['2', 2]]);
   });
 
+  it('should force calculating value if observed but source has coming update', () => {
+    const [text, count] = [of('text'), of(0)];
+    const combined = combine(text, count);
+
+    const run1 = observe(combined);
+    text.next('1');
+    count.next(1);
+    expect(combined()).toStrictEqual(['1', 1]);
+    scheduler.flush();
+
+    run1.dispose();
+  });
+
   it('should not schedule update on read with coming update from source', () => {
     const [text, count] = [of('text'), of(0)];
     const combined = combine(text, count);
