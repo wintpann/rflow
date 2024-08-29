@@ -7,6 +7,7 @@ export const map =
 
     return observable(value()).create({
       reflect: {
+        parent: source,
         onRead: ({ next, isObserved }) => {
           if (!isObserved() || reflect(source).hasScheduledUpdate()) {
             next(value(), { scheduleUpdate: false });

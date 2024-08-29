@@ -55,11 +55,16 @@ export type onBecomesUnobserved = <Value>(
   internals: ObservableInternals<Value>,
 ) => void;
 
+export type ObservableParent =
+  | Observable<unknown, NonNullable<unknown>>
+  | Observable<unknown, NonNullable<unknown>>[];
+
 export type ReflectOptions<Value> = {
   onBecomesObserved?: (
     internals: ObservableInternals<Value>,
   ) => onBecomesUnobserved | void;
   onRead?: (internals: ObservableInternals<Value>) => void;
+  parent?: ObservableParent;
 };
 
 export type CreateOptions<Value, API extends APIRecord> = {

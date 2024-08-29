@@ -21,10 +21,11 @@ export const isObservable = <Value = any>(
 export const newObservable = <Value>(value: Value) => ({
   create: <API extends APIRecord = NoAPI>({
     api,
-    reflect,
+    reflect: reflectOptions,
   }: CreateOptions<Value, API> = {}) => {
-    const observers = new Set<Lazy>();
     let nextUpdateObservers = new Set<Lazy>();
+    const observers = new Set<Lazy>();
+    const parent = reflectOptions?.parent;
     let onBecomesUnobserved: onBecomesUnobserved | void;
     let observed = false;
     let current = value;
@@ -47,11 +48,22 @@ export const newObservable = <Value>(value: Value) => ({
         }
         current = updated;
       },
-      hasScheduledUpdate: () => scheduler.isScheduled(callObservers),
+      hasScheduledUpdate: () => {
+        if (scheduler.isScheduled(callObservers)) {
+          return true;
+        } else if (Array.isArray(parent)) {
+          return parent.some((observable) =>
+            reflect(observable).hasScheduledUpdate(),
+          );
+        } else if (parent) {
+          return reflect(parent).hasScheduledUpdate();
+        }
+        return false;
+      },
       isObserved: () => observed,
     };
 
-    const onRead = reflect?.onRead;
+    const onRead = reflectOptions?.onRead;
     const read = onRead
       ? () => {
           onRead(internals);
@@ -85,8 +97,8 @@ export const newObservable = <Value>(value: Value) => ({
       const observer = () => callback(current);
       observers.add(observer);
       const becameObserved = !observed;
-      if (becameObserved && reflect?.onBecomesObserved) {
-        onBecomesUnobserved = reflect.onBecomesObserved(internals);
+      if (becameObserved && reflectOptions?.onBecomesObserved) {
+        onBecomesUnobserved = reflectOptions.onBecomesObserved(internals);
       }
       observed = true;
 

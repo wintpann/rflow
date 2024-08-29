@@ -10,6 +10,7 @@ export const distinctUntilChanged =
 
     return observable(lastValue).create({
       reflect: {
+        parent: source,
         onRead: ({ next, isObserved }) => {
           if (!isObserved() || reflect(source).hasScheduledUpdate()) {
             next(source(), { scheduleUpdate: false });

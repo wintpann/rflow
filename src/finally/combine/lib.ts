@@ -20,6 +20,7 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
 
   return observable(value()).create({
     reflect: {
+      parent: observables,
       onRead: ({ isObserved, next }) => {
         const hasUpdates = observables.some((observable) =>
           reflect(observable).hasScheduledUpdate(),
