@@ -1,7 +1,7 @@
 import { Lazy } from '../common';
 
 class Scheduler {
-  callbacks = new Set<Lazy>();
+  private callbacks = new Set<Lazy>();
 
   schedule(callback: Lazy) {
     this.callbacks.add(callback);

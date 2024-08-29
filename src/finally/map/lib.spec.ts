@@ -1,26 +1,26 @@
 import { map } from './lib.ts';
-import { read, observe } from '../test-utils.ts';
+import { observe } from '../test-utils.ts';
 import { of } from '../observable';
 import { scheduler } from '../scheduler';
 
 describe('map', () => {
-  it('should run mapper on unobserved access', () => {
+  it('should work on unobserved access', () => {
     const doubler: (num: number) => number = jest.fn((v) => v * 2);
 
     const source = of(2);
     const doubled = source.pipe(map(doubler));
 
     expect(doubler).toHaveBeenCalledTimes(1);
-    expect(read(source)).toBe(2);
-    expect(read(doubled)).toBe(4);
+    expect(source()).toBe(2);
+    expect(doubled()).toBe(4);
 
     source.next(4);
     expect(doubler).toHaveBeenCalledTimes(2);
-    expect(read(source)).toBe(4);
-    expect(read(doubled)).toBe(8);
+    expect(source()).toBe(4);
+    expect(doubled()).toBe(8);
   });
 
-  it('should run mapper on observed access once until source changed', () => {
+  it('should work on observed access', () => {
     const doubler: (num: number) => number = jest.fn((v) => v * 2);
 
     const source = of(2);
@@ -28,18 +28,51 @@ describe('map', () => {
     expect(doubler).toHaveBeenCalledTimes(1);
 
     const run1 = observe(doubled);
-    expect(doubler).toHaveBeenCalledTimes(1);
+    expect(doubler).toHaveBeenCalledTimes(2);
     const run2 = observe(doubled);
-    expect(doubler).toHaveBeenCalledTimes(1);
+    expect(doubler).toHaveBeenCalledTimes(2);
 
     source.next(3);
+    source.next(4);
     scheduler.flush();
-    expect(doubler).toHaveBeenCalledTimes(2);
-    expect(run1.updates.current).toStrictEqual([6]);
-    expect(run2.updates.current).toStrictEqual([6]);
+    expect(doubler).toHaveBeenCalledTimes(3);
+    expect(run1.updates.current).toStrictEqual([8]);
+    expect(run2.updates.current).toStrictEqual([8]);
 
     run1.dispose();
     run2.dispose();
+  });
+
+  it('should calculate value & not schedule update if observed and source hasScheduledUpdate', () => {
+    const source = of(1);
+    const doubler: (num: number) => number = jest.fn((v) => v * 2);
+    const doubled = source.pipe(map(doubler));
+    const doubledObserve = jest.fn();
+
+    const dispose1 = doubled.observe(doubledObserve);
+    source.next(2);
+    expect(doubled()).toBe(4);
+    scheduler.flush();
+    expect(doubler).toHaveBeenCalledTimes(4);
+    expect(doubledObserve).not.toHaveBeenCalled();
+
+    dispose1();
+  });
+
+  it('should calculate value & not schedule update on BO cause source could have changed & updated', () => {
+    const source = of(1);
+    const doubled = source.pipe(map((v) => v * 2));
+    const doubledObserve = jest.fn();
+
+    source.next(2);
+    source.next(3);
+    scheduler.flush();
+    const dispose1 = doubled.observe(doubledObserve);
+    expect(doubled()).toBe(6);
+    scheduler.flush();
+    expect(doubledObserve).not.toHaveBeenCalled();
+
+    dispose1();
   });
 
   it('should run multiple mappers', () => {
@@ -54,73 +87,29 @@ describe('map', () => {
     expect(plusOne).toHaveBeenCalledTimes(1);
 
     const run1 = observe(doubledPlusOne);
-    expect(doubler).toHaveBeenCalledTimes(2);
-    expect(plusOne).toHaveBeenCalledTimes(1);
+    expect(doubler).toHaveBeenCalledTimes(4);
+    expect(plusOne).toHaveBeenCalledTimes(2);
 
     const run2 = observe(doubledPlusOne);
-    expect(doubler).toHaveBeenCalledTimes(2);
-    expect(plusOne).toHaveBeenCalledTimes(1);
+    expect(doubler).toHaveBeenCalledTimes(4);
+    expect(plusOne).toHaveBeenCalledTimes(2);
 
     source.next(3);
     scheduler.flush();
-    expect(doubler).toHaveBeenCalledTimes(3);
-    expect(plusOne).toHaveBeenCalledTimes(2);
+    expect(doubler).toHaveBeenCalledTimes(5);
+    expect(plusOne).toHaveBeenCalledTimes(3);
 
     const run3 = observe(doubledPlusOne);
-    expect(doubler).toHaveBeenCalledTimes(3);
-    expect(plusOne).toHaveBeenCalledTimes(2);
+    expect(doubler).toHaveBeenCalledTimes(5);
+    expect(plusOne).toHaveBeenCalledTimes(3);
 
     source.next(4);
     scheduler.flush();
-    expect(doubler).toHaveBeenCalledTimes(4);
-    expect(plusOne).toHaveBeenCalledTimes(3);
+    expect(doubler).toHaveBeenCalledTimes(6);
+    expect(plusOne).toHaveBeenCalledTimes(4);
 
     run1.dispose();
     run2.dispose();
     run3.dispose();
-  });
-
-  it('should force calculating value if observed but source has coming update', () => {
-    const source = of(1);
-    const doubler: (num: number) => number = jest.fn((v) => v * 2);
-    const doubled = source.pipe(map(doubler));
-
-    const run1 = observe(doubled);
-    source.next(2);
-    expect(doubled()).toBe(4);
-    scheduler.flush();
-    expect(doubler).toHaveBeenCalledTimes(3);
-
-    run1.dispose();
-  });
-
-  // on read BUT the case is >> reflect(source).hasScheduledUpdate()
-  it('should not schedule update on read with coming update from source', () => {
-    const doubledObserve = jest.fn();
-
-    const source = of(1);
-    const doubled = source.pipe(map((v) => v * 2));
-
-    // not relevant, should be vice versa, but not working as expected cause read() sets new value
-    source.next(2);
-    const dispose1 = doubled.observe(doubledObserve);
-
-    read(doubled);
-    scheduler.flush();
-
-    expect(doubledObserve).not.toHaveBeenCalled();
-    dispose1();
-  });
-
-  it('should get actual value after subscription when source has changed & updated', () => {
-    const source = of(1);
-    const doubled = source.pipe(map((v) => v * 2));
-
-    source.next(2);
-    source.next(3);
-    scheduler.flush();
-    const run1 = observe(doubled);
-    expect(doubled()).toBe(6);
-    run1.dispose();
   });
 });

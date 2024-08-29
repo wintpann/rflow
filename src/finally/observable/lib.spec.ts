@@ -143,7 +143,7 @@ describe('observable', () => {
     expect(run1.updates.current).toStrictEqual([1, 5]);
   });
 
-  it('should now when hasScheduledUpdates all the parents up', () => {
+  it('should know when hasScheduledUpdates all the parents up', () => {
     const parent1 = of(1);
     const parent2 = of('1');
 
