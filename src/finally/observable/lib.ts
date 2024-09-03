@@ -6,6 +6,7 @@ import {
   NoAPI,
   Observable,
   ObservableInternals,
+  ObservableParent,
   onBecomesUnobserved,
 } from './typings.ts';
 import { die, Lazy, pipe } from '../common';
@@ -53,10 +54,10 @@ export const newObservable = <Value>(value: Value) => ({
           return true;
         } else if (Array.isArray(parent)) {
           return parent.some((observable) =>
-            reflect(observable).hasScheduledUpdate(),
+            getInternals(observable).hasScheduledUpdate(),
           );
         } else if (parent) {
-          return reflect(parent).hasScheduledUpdate();
+          return getInternals(parent).hasScheduledUpdate();
         }
         return false;
       },
@@ -128,6 +129,19 @@ export const of = <Value>(
     api: (next) => ({ next }),
   });
 
-export const reflect = <Value>(
+const getInternals = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];
+
+export const internals = getInternals;
+
+export const introspect = {
+  hasUpdates: (source: ObservableParent) => {
+    if (Array.isArray(source)) {
+      return source.some((observable) =>
+        getInternals(observable).hasScheduledUpdate(),
+      );
+    }
+    return getInternals(source).hasScheduledUpdate();
+  },
+};

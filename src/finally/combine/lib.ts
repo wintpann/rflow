@@ -1,4 +1,4 @@
-import { observable, Observable, reflect } from '../observable';
+import { observable, Observable, introspect } from '../observable';
 import { Combine } from './typings.ts';
 
 export const combine: Combine = (...items: any[]): Observable<any> => {
@@ -22,10 +22,7 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
     reflect: {
       parent: observables,
       onRead: ({ isObserved, next }) => {
-        const hasUpdates = observables.some((observable) =>
-          reflect(observable).hasScheduledUpdate(),
-        );
-        if (!isObserved() || hasUpdates) {
+        if (!isObserved() || introspect.hasUpdates(observables)) {
           next(value(), { scheduleUpdate: false });
         }
       },

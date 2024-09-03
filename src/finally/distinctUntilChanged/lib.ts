@@ -1,6 +1,6 @@
 import { shallowEqual } from 'shallow-equal';
 import { EqualsComparer } from './typings.ts';
-import { observable, Observable, reflect } from '../observable';
+import { observable, Observable, introspect } from '../observable';
 
 export const distinctUntilChanged =
   <T>(comparer?: EqualsComparer<T>) =>
@@ -12,7 +12,7 @@ export const distinctUntilChanged =
       reflect: {
         parent: source,
         onRead: ({ next, isObserved }) => {
-          if (!isObserved() || reflect(source).hasScheduledUpdate()) {
+          if (!isObserved() || introspect.hasUpdates(source)) {
             next(source(), { scheduleUpdate: false });
           }
         },
