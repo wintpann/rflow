@@ -1,11 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-const input = observable('').create({
-  api: (next) => ({
-    change: (value: string) => next(value),
-  }),
-});
+const input = of('');
 
 const numbers = input.pipe(
   map((text) =>
@@ -19,14 +15,13 @@ const numbers = input.pipe(
 
 const todos = remote({
   params: numbers,
-  request: (params, signal) => api.getTodos(params, signal),
-  enabled: (params) => params.length > 0,
+  request: (params, signal) =>
+    params.length > 0 ? api.getTodos(params, signal) : false,
 });
 
 const pictureIds = todos.pipe(
-  map(remote.toOption),
   map(
-    option.fold(
+    remote.foldS(
       (value) => value.map((el) => el.pictureId),
       () => [],
     ),
@@ -35,6 +30,6 @@ const pictureIds = todos.pipe(
 
 const pictures = remote({
   params: pictureIds,
-  request: (params, signal) => api.getPictures(params, signal),
-  enabled: (params) => params.length > 0,
+  request: (params, signal) =>
+    params.length > 0 ? api.getPictures(params, signal) : false,
 });
