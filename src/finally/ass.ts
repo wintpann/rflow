@@ -33,3 +33,9 @@ const pictures = remote({
   request: (params, signal) =>
     params.length > 0 ? api.getPictures(params, signal) : false,
 });
+
+const clicks = fromEvent(document, 'click');
+const result = clicks.pipe(
+  audit((ev) => interval(1000)),
+  scan(),
+);
