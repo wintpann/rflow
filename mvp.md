@@ -1,5 +1,6 @@
-observable based on () => observable?
-on unobserved read behavior
+observable based on () => observable? e.g. scan() on unobserved read behavior
+
+observable from observable?
 
 ## maybe
 * fromEvent
