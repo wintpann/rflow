@@ -11,17 +11,28 @@ observable from observable?
 * bufferTime
 * bufferToggle
 * debounce
+* throttle
 * defer
 * delay
 * delayWhen
 * tap
 * every
 * find
+* interval
+* range
+* mapTo
+* sample
+* take
+* takeUntil
+* takeWhile
+* timeInterval
 
 ## definitely
 * debounceTime
+* throttleTime
 * distinct
 * filter
 * from
-
-G
+* merge
+* scan
+* zip
