@@ -27,8 +27,6 @@ observable from observable?
 * timeInterval
 
 ## definitely
-* debounceTime
-* throttleTime
 * distinct
 * filter
 * from
