@@ -1,9 +1,6 @@
 import { observable, isObservable, of } from './lib.ts';
-import { observe, read } from '../test-utils.ts';
+import { observe, watch } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
-import { combine } from '../combine';
-import { map } from '../map';
-import { distinctUntilChanged } from '../distinctUntilChanged';
 
 describe('observable', () => {
   it('should create observable', () => {
@@ -17,146 +14,78 @@ describe('observable', () => {
 
   it('should not create if unsupported handler', () => {
     const thrown = {
-      $type: false,
+      _unsafe: false,
       observe: false,
       pipe: false,
     };
     try {
-      observable(0).create({
-        api: (next) => ({ $type: next }),
-      });
+      observable(0).create((next) => ({ _unsafe: next }));
     } catch (e) {
-      thrown.$type = true;
+      thrown._unsafe = true;
     }
     try {
-      observable(0).create({
-        api: (next) => ({ observe: next }),
-      });
+      observable(0).create((next) => ({ observe: next }));
     } catch (e) {
       thrown.observe = true;
     }
     try {
-      observable(0).create({
-        api: (next) => ({ pipe: next }),
-      });
+      observable(0).create((next) => ({ pipe: next }));
     } catch (e) {
       thrown.pipe = true;
     }
-    expect(thrown).toStrictEqual({ $type: true, observe: true, pipe: true });
-  });
-
-  it('should call onBecomesObserved/onBecomesUnobserved', () => {
-    const onBecomesObserved = jest.fn();
-    const onBecomesUnobserved = jest.fn();
-
-    const source = observable('0').create({
-      reflect: {
-        onBecomesObserved: () => {
-          onBecomesObserved();
-          return onBecomesUnobserved;
-        },
-      },
-    });
-
-    read(source);
-    expect(onBecomesObserved).not.toHaveBeenCalled();
-    expect(onBecomesUnobserved).not.toHaveBeenCalled();
-
-    const run1 = observe(source);
-    expect(onBecomesObserved).toHaveBeenCalledTimes(1);
-    expect(onBecomesUnobserved).not.toHaveBeenCalled();
-
-    const run2 = observe(source);
-    expect(onBecomesObserved).toHaveBeenCalledTimes(1);
-    expect(onBecomesUnobserved).not.toHaveBeenCalled();
-
-    run1.dispose();
-    expect(onBecomesUnobserved).toHaveBeenCalledTimes(0);
-
-    run2.dispose();
-    expect(onBecomesUnobserved).toHaveBeenCalledTimes(1);
+    expect(thrown).toStrictEqual({ _unsafe: true, observe: true, pipe: true });
   });
 
   it('should create api & update value', () => {
-    const source = observable({ count: 0 }).create({
-      api: (next) => ({
-        increase: () => next((prev) => ({ count: prev.count + 1 })),
-        set: (count: number) => next({ count }),
-      }),
-    });
+    const source = observable({ count: 0 }).create((next) => ({
+      increase: () => next((prev) => ({ count: prev.count + 1 })),
+      set: (count: number) => next({ count }),
+    }));
 
-    const run1 = observe(source);
-    expect(run1.updates.current).toStrictEqual([]);
+    const observe1 = observe(source);
+    const watch1 = watch(source);
+    expect(observe1.updates.current).toStrictEqual([]);
+    expect(watch1.updates.current).toStrictEqual([]);
 
     source.set(1);
+    expect(observe1.updates.current).toStrictEqual([]);
+    expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
     scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([{ count: 1 }]);
+    expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
+    expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
 
     source.increase();
+    expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
+    expect(watch1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
     scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
+    expect(observe1.updates.current).toStrictEqual([
+      { count: 1 },
+      { count: 2 },
+    ]);
+    expect(watch1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
 
-    run1.dispose();
-  });
-
-  it('should not notify observers if value not shallow changed', () => {
-    const initial = { a: 0, b: 0 };
-    const source = observable(initial).create({
-      api: (next) => ({
-        set: (value: typeof initial) => next(value),
-      }),
-    });
-
-    const run1 = observe(source);
-    source.set(initial);
-    scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([]);
-
-    source.set(initial);
-    scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([]);
-
-    source.set({ a: 0, b: 0 });
-    scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([{ a: 0, b: 0 }]);
-
-    run1.dispose();
+    observe1.dispose();
+    watch1.dispose();
   });
 
   it('should schedule multiple sync updates', () => {
-    const source = observable(0).create({
-      api: (next) => ({
-        increase: () => next((prev) => prev + 1),
-      }),
-    });
+    const source = observable(0).create((next) => ({
+      increase: () => next((prev) => prev + 1),
+    }));
 
-    const run1 = observe(source);
+    const observe1 = observe(source);
+    const watch1 = watch(source);
     source.increase();
     scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([1]);
+    expect(observe1.updates.current).toStrictEqual([1]);
+    expect(watch1.updates.current).toStrictEqual([1]);
 
     source.increase();
     source.increase();
     source.increase();
     source.increase();
     scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([1, 5]);
-  });
-
-  it('should know when hasScheduledUpdates all the parents up', () => {
-    const parent1 = of(1);
-    const parent2 = of('1');
-
-    const down1 = combine(parent1, parent2);
-    const down2 = down1.pipe(map(([v1, v2]) => `${v1}${v2}`));
-    const down3 = down2.pipe(distinctUntilChanged());
-
-    const run1 = observe(down3);
-    parent1.next(2);
-    parent2.next('2');
-    expect(down3()).toBe('22');
-    scheduler.flush();
-
-    run1.dispose();
+    expect(observe1.updates.current).toStrictEqual([1, 5]);
+    expect(watch1.updates.current).toStrictEqual([1, 2, 3, 4, 5]);
   });
 });

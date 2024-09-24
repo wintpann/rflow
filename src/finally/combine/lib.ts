@@ -1,4 +1,4 @@
-import { observable, Observable, introspect } from '../observable';
+import { observable, Observable } from '../observable';
 import { Combine } from './typings.ts';
 
 export const combine: Combine = (...items: any[]): Observable<any> => {
@@ -18,25 +18,14 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
         )
       : observables.map((observable) => observable());
 
-  return observable(value()).create({
-    reflect: {
-      parent: observables,
-      onRead: ({ isObserved, next }) => {
-        if (!isObserved() || introspect.hasUpdates(observables)) {
-          next(value(), { scheduleUpdate: false });
-        }
-      },
-      onBecomesObserved: ({ next }) => {
-        next(value(), { scheduleUpdate: false });
-        const unobservers = observables.map((observable) =>
-          observable.observe(() => next(value())),
-        );
-        return () => {
-          for (const unobserve of unobservers) {
-            unobserve();
-          }
-        };
-      },
-    },
+  return observable(value()).create(null, ({ next }) => {
+    const unwatchers = observables.map((observable) =>
+      observable._unsafe.watch(() => next(value())),
+    );
+    return () => {
+      for (const unwatch of unwatchers) {
+        unwatch();
+      }
+    };
   });
 };

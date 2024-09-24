@@ -2,7 +2,6 @@ import { of } from '../observable';
 import { distinctUntilChanged } from './lib.ts';
 import { observe } from '../test-utils.ts';
 import { scheduler } from '../scheduler';
-import { map } from '../map';
 
 describe('distinctUntilChanged', () => {
   it('should work on unobserved access', () => {
@@ -21,50 +20,20 @@ describe('distinctUntilChanged', () => {
     const source = of(2);
     const distincted = source.pipe(distinctUntilChanged());
 
-    const run1 = observe(distincted);
-    const run2 = observe(distincted);
+    const observe1 = observe(distincted);
+    const observe2 = observe(distincted);
 
     source.next(3);
     source.next(4);
     scheduler.flush();
-    expect(run1.updates.current).toStrictEqual([4]);
-    expect(run2.updates.current).toStrictEqual([4]);
+    expect(observe1.updates.current).toStrictEqual([4]);
+    expect(observe2.updates.current).toStrictEqual([4]);
 
-    run1.dispose();
-    run2.dispose();
+    observe1.dispose();
+    observe2.dispose();
   });
 
-  it('should calculate value & not schedule update if observed and source hasScheduledUpdate', () => {
-    const source = of(1);
-    const distincted = source.pipe(distinctUntilChanged());
-    const distinctedObserve = jest.fn();
-
-    const dispose1 = distincted.observe(distinctedObserve);
-    source.next(2);
-    expect(distincted()).toBe(2);
-    scheduler.flush();
-    expect(distinctedObserve).not.toHaveBeenCalled();
-
-    dispose1();
-  });
-
-  it('should calculate value & not schedule update on BO cause source could have changed & updated', () => {
-    const source = of(1);
-    const distincted = source.pipe(distinctUntilChanged());
-    const distinctedObserve = jest.fn();
-
-    source.next(2);
-    source.next(3);
-    scheduler.flush();
-    const dispose1 = distincted.observe(distinctedObserve);
-    expect(distincted()).toBe(3);
-    scheduler.flush();
-    expect(distinctedObserve).not.toHaveBeenCalled();
-
-    dispose1();
-  });
-
-  it('should work with default shallow comparer', () => {
+  it('should work with default deep comparer', () => {
     const source = of([1]);
     const distincted = source.pipe(distinctUntilChanged());
 
@@ -145,24 +114,5 @@ describe('distinctUntilChanged', () => {
 
     runSource.dispose();
     runDistincted.dispose();
-  });
-
-  it('should assume lastValue as becomes observed', () => {
-    const source = of(1);
-    const distincted = source.pipe(
-      map((el) => [el]),
-      distinctUntilChanged(),
-    );
-
-    source.next(2);
-    source.next(3);
-    source.next(4);
-    scheduler.flush();
-    const run1 = observe(distincted);
-    source.next(1);
-    scheduler.flush();
-
-    expect(run1.updates.current).toStrictEqual([[1]]);
-    run1.dispose();
   });
 });

@@ -1,34 +1,32 @@
 import {
   APIRecord,
-  CreateOptions,
+  CreateAPI,
   NewObservable,
   Next,
   NoAPI,
   Observable,
   ObservableInternals,
-  ObservableParent,
-  onBecomesUnobserved,
+  Reflect,
 } from './typings.ts';
 import { die, Lazy, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
-const UNSUPPORTED_API_HANDLER_NAMES = new Set(['$type', 'observe', 'pipe']);
+const UNSUPPORTED_API_HANDLER_NAMES = new Set(['_unsafe', 'observe', 'pipe']);
 const INTERNALS_KEY = Symbol('internals');
 
 export const isObservable = <Value = any>(
   target: any,
-): target is Observable<Value> => target?.$type === 'observable';
+): target is Observable<Value> => target?._unsafe?.type === 'observable';
 
 export const newObservable = <Value>(value: Value) => ({
-  create: <API extends APIRecord = NoAPI>({
-    api,
-    reflect: reflectOptions,
-  }: CreateOptions<Value, API> = {}) => {
+  create: <API extends APIRecord = NoAPI>(
+    api?: CreateAPI<Value, API> | null,
+    reflect?: Reflect<Value>,
+  ) => {
     let nextUpdateObservers = new Set<Lazy>();
     const observers = new Set<Lazy>();
-    const parent = reflectOptions?.parent;
-    let onBecomesUnobserved: onBecomesUnobserved | void;
-    let observed = false;
+    const watchers = new Set<Lazy>();
+
     let current = value;
 
     const callObservers = () => {
@@ -39,46 +37,28 @@ export const newObservable = <Value>(value: Value) => ({
       }
     };
 
-    const internals: ObservableInternals<Value> = {
-      next: (value, options) => {
-        const scheduleUpdate = options?.scheduleUpdate ?? true;
-        const updated = value instanceof Function ? value(current) : value;
-        if (scheduleUpdate && updated !== current) {
-          nextUpdateObservers = new Set(observers);
-          scheduler.schedule(callObservers);
-        }
-        current = updated;
-      },
-      hasScheduledUpdate: () => {
-        if (scheduler.isScheduled(callObservers)) {
-          return true;
-        } else if (Array.isArray(parent)) {
-          return parent.some((observable) =>
-            getInternals(observable).hasScheduledUpdate(),
-          );
-        } else if (parent) {
-          return getInternals(parent).hasScheduledUpdate();
-        }
-        return false;
-      },
-      isObserved: () => observed,
+    const callWatchers = () => {
+      for (const watcher of watchers.values()) {
+        watcher();
+      }
     };
 
-    const onRead = reflectOptions?.onRead;
-    const read = onRead
-      ? () => {
-          onRead(internals);
-          return current;
-        }
-      : () => current;
+    const internals: ObservableInternals<Value> = {
+      next: (value) => {
+        current = value instanceof Function ? value(current) : value;
+        callWatchers();
+        nextUpdateObservers = new Set(observers);
+        scheduler.schedule(callObservers);
+      },
+    };
+
+    const read = () => current;
 
     const instance = read as Observable<Value, API>;
-    instance.$type = 'observable';
     (instance as any)[INTERNALS_KEY] = internals;
 
     if (api) {
-      const next: Next<Value> = (value) => internals.next(value);
-      const record = api(next);
+      const record = api(internals.next);
       for (const [key, handler] of Object.entries(record)) {
         if (UNSUPPORTED_API_HANDLER_NAMES.has(key)) {
           die(
@@ -97,20 +77,24 @@ export const newObservable = <Value>(value: Value) => ({
     instance.observe = (callback) => {
       const observer = () => callback(current);
       observers.add(observer);
-      const becameObserved = !observed;
-      if (becameObserved && reflectOptions?.onBecomesObserved) {
-        onBecomesUnobserved = reflectOptions.onBecomesObserved(internals);
-      }
-      observed = true;
 
       return () => {
         observers.delete(observer);
-        const becameUnobserved = observers.size === 0;
-        if (becameUnobserved && onBecomesUnobserved) {
-          onBecomesUnobserved(internals);
-        }
-        observed = observers.size > 0;
       };
+    };
+    const onDestroy = reflect?.(internals);
+
+    instance._unsafe = {
+      destroy: () => onDestroy?.(),
+      watch: (callback) => {
+        const watcher = () => callback(current);
+        watchers.add(watcher);
+
+        return () => {
+          watchers.delete(watcher);
+        };
+      },
+      type: 'observable',
     };
 
     // @ts-ignore
@@ -125,23 +109,8 @@ export const observable = newObservable as NewObservable;
 export const of = <Value>(
   value: Value,
 ): Observable<Value, { next: Next<Value> }> =>
-  observable<Value>(value).create({
-    api: (next) => ({ next }),
-  });
+  observable<Value>(value).create((next) => ({ next }));
 
-const getInternals = <Value>(
+export const internals = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];
-
-export const internals = getInternals;
-
-export const introspect = {
-  hasUpdates: (source: ObservableParent) => {
-    if (Array.isArray(source)) {
-      return source.some((observable) =>
-        getInternals(observable).hasScheduledUpdate(),
-      );
-    }
-    return getInternals(source).hasScheduledUpdate();
-  },
-};

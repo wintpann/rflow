@@ -1,5 +1,4 @@
-observable based on () => observable? e.g. scan() on unobserved read behavior
-
+destroy behavior?
 observable from observable?
 
 ## maybe
