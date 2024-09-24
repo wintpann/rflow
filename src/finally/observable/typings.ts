@@ -63,12 +63,15 @@ export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
 
 export type ObservableInternals<Value> = {
   next: Next<Value>;
-  _unsafe_state: {
-    destroyed?: boolean;
-    observers: Set<Lazy>;
-    watchers: Set<Lazy>;
-    destroyers: Set<Lazy>;
-  };
+};
+
+export type ObservableState<Value> = {
+  value: Value;
+  destroyed?: boolean;
+  observers: Set<Lazy>;
+  scheduledObservers: Set<Lazy>;
+  watchers: Set<Lazy>;
+  destroyers: Set<Lazy>;
 };
 
 export type CreateObservable<Value> = {

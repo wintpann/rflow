@@ -6,13 +6,15 @@ import {
   NoAPI,
   Observable,
   ObservableInternals,
+  ObservableState,
   Operate,
 } from './typings.ts';
 import { die, Lazy, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
 const UNSUPPORTED_API_HANDLER_NAMES = new Set(['_unsafe', 'observe', 'pipe']);
-const INTERNALS_KEY = Symbol('internals');
+const INTERNALS_KEY = Symbol('@internals');
+const STATE_KEY = Symbol('@state');
 
 export const isObservable = <Value = any>(
   target: any,
@@ -30,17 +32,16 @@ export const newObservable = <Value>(value: Value) => ({
   create: <API extends APIRecord = NoAPI>(
     api?: CreateAPI<Value, API> | null,
   ) => {
-    const state = {
+    const state: ObservableState<Value> = {
       value,
       destroyed: false,
       observers: new Set<Lazy>(),
-      nextUpdateObservers: new Set<Lazy>(),
+      scheduledObservers: new Set<Lazy>(),
       watchers: new Set<Lazy>(),
       destroyers: new Set<Lazy>(),
     };
 
-    const callObservers = () =>
-      call(state.nextUpdateObservers, state.observers);
+    const callObservers = () => call(state.scheduledObservers, state.observers);
     const callWatchers = () => call(state.watchers);
     const callDestroyers = () => call(state.destroyers);
 
@@ -48,16 +49,16 @@ export const newObservable = <Value>(value: Value) => ({
       next: (value) => {
         state.value = value instanceof Function ? value(state.value) : value;
         callWatchers();
-        state.nextUpdateObservers = new Set(state.observers);
+        state.scheduledObservers = new Set(state.observers);
         scheduler.schedule(callObservers);
       },
-      _unsafe_state: state,
     };
 
     const read = () => state.value;
 
     const instance = read as Observable<Value, API>;
     (instance as any)[INTERNALS_KEY] = internals;
+    (instance as any)[STATE_KEY] = state;
 
     if (api) {
       const record = api(internals.next);
@@ -115,15 +116,19 @@ export const of = <Value>(
 ): Observable<Value, { next: Next<Value> }> =>
   observable<Value>(value).create((next) => ({ next }));
 
-const internals = <Value>(
+const getInternals = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];
 
+const getState = <Value>(
+  observable: Observable<Value, NonNullable<unknown>>,
+): ObservableState<Value> => (observable as any)[STATE_KEY];
+
 export const operate: Operate = ({ destination, define }) => {
   if (define) {
-    const onDestroy = define(internals(destination));
+    const onDestroy = define(getInternals(destination));
     if (onDestroy) {
-      internals(destination)._unsafe_state.destroyers.add(onDestroy);
+      getState(destination).destroyers.add(onDestroy);
     }
   }
   return destination;
