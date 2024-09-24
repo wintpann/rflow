@@ -1,20 +1,16 @@
 // @ts-nocheck
-import { combine, map, of } from '../../finally';
+import * as O from '../../finally';
 
-const count = of(1);
-const text = of('1');
-const doubled = count.pipe(map((v) => v * 2));
-const combined = combine({ text, count });
+const one = O.of(1);
+const two = O.of(2);
+const three = O.of(3);
+const zipped = O.zip(one, two, three);
 
-count.observe((value) => console.log('LOOOG count', value));
-text.observe((value) => console.log('LOOOG text', value));
-doubled.observe((value) => console.log('LOOOG doubled', value));
-combined.observe((value) => console.log('LOOOG combined', value));
+zipped.observe((v) => console.log('LOOOG', v));
 
-window.doubled = doubled;
-window.combined = combined;
-window.count = count;
-window.text = text;
+Object.entries(O).forEach(([key, value]) => {
+  window[key] = value;
+});
 
 export const Starter = () => {
   return null;
