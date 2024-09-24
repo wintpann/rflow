@@ -8,12 +8,15 @@ export type CreateAPI<Value, API extends APIRecord> = (
   next: Next<Value>,
 ) => API;
 
-export type Reflect<Value> = (
-  internals: ObservableInternals<Value>,
-) => DestroyFunction | void;
+export type OnDestroy = Lazy;
 
-export interface Callable<Value> {
-  (): Value;
+export interface Operate {
+  <Destination extends Observable<any, NonNullable<unknown>>>(parameters: {
+    destination: Destination;
+    define?: (
+      internals: ObservableInternals<ObservableValue<Destination>>,
+    ) => OnDestroy | void;
+  }): Destination;
 }
 
 export type ObserveFunction<Value> = (
@@ -26,7 +29,10 @@ export type WatchFunction<Value> = (
 
 export type UnobserveFunction = Lazy;
 export type UnwatchFunction = Lazy;
-export type DestroyFunction = Lazy;
+
+export interface Callable<Value> {
+  (): Value;
+}
 
 export type NoAPI = Record<string, never>;
 
@@ -57,12 +63,17 @@ export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
 
 export type ObservableInternals<Value> = {
   next: Next<Value>;
+  _unsafe_state: {
+    destroyed?: boolean;
+    observers: Set<Lazy>;
+    watchers: Set<Lazy>;
+    destroyers: Set<Lazy>;
+  };
 };
 
 export type CreateObservable<Value> = {
   create: <API extends APIRecord = NoAPI>(
     api?: CreateAPI<Value, API> | null,
-    reflect?: Reflect<Value>,
   ) => Observable<Value, API>;
 };
 

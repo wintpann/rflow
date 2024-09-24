@@ -14,7 +14,6 @@ observable from observable?
 * defer
 * delay
 * delayWhen
-* tap
 * every
 * find
 * interval

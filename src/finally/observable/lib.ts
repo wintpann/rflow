@@ -6,7 +6,7 @@ import {
   NoAPI,
   Observable,
   ObservableInternals,
-  Reflect,
+  Operate,
 } from './typings.ts';
 import { die, Lazy, pipe } from '../common';
 import { scheduler } from '../scheduler';
@@ -18,41 +18,43 @@ export const isObservable = <Value = any>(
   target: any,
 ): target is Observable<Value> => target?._unsafe?.type === 'observable';
 
+const call = (actualSet: Set<Lazy>, checkupSet?: Set<Lazy>) => {
+  for (const callback of actualSet.values()) {
+    if (checkupSet ? checkupSet.has(callback) : true) {
+      callback();
+    }
+  }
+};
+
 export const newObservable = <Value>(value: Value) => ({
   create: <API extends APIRecord = NoAPI>(
     api?: CreateAPI<Value, API> | null,
-    reflect?: Reflect<Value>,
   ) => {
-    let nextUpdateObservers = new Set<Lazy>();
-    const observers = new Set<Lazy>();
-    const watchers = new Set<Lazy>();
-
-    let current = value;
-
-    const callObservers = () => {
-      for (const observer of nextUpdateObservers.values()) {
-        if (observers.has(observer)) {
-          observer();
-        }
-      }
+    const state = {
+      value,
+      destroyed: false,
+      observers: new Set<Lazy>(),
+      nextUpdateObservers: new Set<Lazy>(),
+      watchers: new Set<Lazy>(),
+      destroyers: new Set<Lazy>(),
     };
 
-    const callWatchers = () => {
-      for (const watcher of watchers.values()) {
-        watcher();
-      }
-    };
+    const callObservers = () =>
+      call(state.nextUpdateObservers, state.observers);
+    const callWatchers = () => call(state.watchers);
+    const callDestroyers = () => call(state.destroyers);
 
     const internals: ObservableInternals<Value> = {
       next: (value) => {
-        current = value instanceof Function ? value(current) : value;
+        state.value = value instanceof Function ? value(state.value) : value;
         callWatchers();
-        nextUpdateObservers = new Set(observers);
+        state.nextUpdateObservers = new Set(state.observers);
         scheduler.schedule(callObservers);
       },
+      _unsafe_state: state,
     };
 
-    const read = () => current;
+    const read = () => state.value;
 
     const instance = read as Observable<Value, API>;
     (instance as any)[INTERNALS_KEY] = internals;
@@ -75,23 +77,25 @@ export const newObservable = <Value>(value: Value) => ({
     }
 
     instance.observe = (callback) => {
-      const observer = () => callback(current);
-      observers.add(observer);
+      const observer = () => callback(state.value);
+      state.observers.add(observer);
 
       return () => {
-        observers.delete(observer);
+        state.observers.delete(observer);
       };
     };
-    const onDestroy = reflect?.(internals);
 
     instance._unsafe = {
-      destroy: () => onDestroy?.(),
+      destroy: () => {
+        callDestroyers();
+        state.destroyed = true;
+      },
       watch: (callback) => {
-        const watcher = () => callback(current);
-        watchers.add(watcher);
+        const watcher = () => callback(state.value);
+        state.watchers.add(watcher);
 
         return () => {
-          watchers.delete(watcher);
+          state.watchers.delete(watcher);
         };
       },
       type: 'observable',
@@ -111,6 +115,16 @@ export const of = <Value>(
 ): Observable<Value, { next: Next<Value> }> =>
   observable<Value>(value).create((next) => ({ next }));
 
-export const internals = <Value>(
+const internals = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];
+
+export const operate: Operate = ({ destination, define }) => {
+  if (define) {
+    const onDestroy = define(internals(destination));
+    if (onDestroy) {
+      internals(destination)._unsafe_state.destroyers.add(onDestroy);
+    }
+  }
+  return destination;
+};

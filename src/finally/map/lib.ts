@@ -1,8 +1,9 @@
-import { observable, Observable } from '../observable';
+import { observable, Observable, operate } from '../observable';
 
 export const map =
   <A, B>(fn: (a: A) => B) =>
   (source: Observable<A>): Observable<B> =>
-    observable(fn(source())).create(null, ({ next }) =>
-      source._unsafe.watch((value) => next(fn(value))),
-    );
+    operate({
+      destination: observable(fn(source())).create(),
+      define: ({ next }) => source._unsafe.watch((value) => next(fn(value))),
+    });

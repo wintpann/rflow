@@ -1,4 +1,4 @@
-import { observable, Observable } from '../observable';
+import { observable, operate, Observable } from '../observable';
 import { Combine } from './typings.ts';
 
 export const combine: Combine = (...items: any[]): Observable<any> => {
@@ -18,14 +18,17 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
         )
       : observables.map((observable) => observable());
 
-  return observable(value()).create(null, ({ next }) => {
-    const unwatchers = observables.map((observable) =>
-      observable._unsafe.watch(() => next(value())),
-    );
-    return () => {
-      for (const unwatch of unwatchers) {
-        unwatch();
-      }
-    };
+  return operate({
+    destination: observable(value()).create(),
+    define: ({ next }) => {
+      const unwatchers = observables.map((observable) =>
+        observable._unsafe.watch(() => next(value())),
+      );
+      return () => {
+        for (const unwatch of unwatchers) {
+          unwatch();
+        }
+      };
+    },
   });
 };

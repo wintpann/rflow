@@ -1,6 +1,7 @@
 export * from './common';
 export * from './observable';
 export * from './map';
+export * from './tap';
 export * from './combine';
 export * from './distinctUntilChanged';
 export * from './debounceTime';
