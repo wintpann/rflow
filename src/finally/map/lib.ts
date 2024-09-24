@@ -7,3 +7,5 @@ export const map =
       destination: observable(fn(source())).create(),
       define: ({ next }) => source._unsafe.watch((value) => next(fn(value))),
     });
+
+export const mapTo = <T>(value: T) => map(() => value);

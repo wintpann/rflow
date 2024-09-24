@@ -1,5 +1,5 @@
-import { map } from './lib.ts';
-import { observe } from '../test-utils.ts';
+import { map, mapTo } from './lib.ts';
+import { observe, watch } from '../test-utils.ts';
 import { of } from '../observable';
 import { scheduler } from '../scheduler';
 
@@ -42,5 +42,16 @@ describe('map', () => {
     expect(doubledPlusOne()).toBe(9);
 
     observe1.dispose();
+  });
+
+  it('should mapTo', () => {
+    const source = of(null);
+    const asterisk = source.pipe(mapTo('*'));
+
+    const watch1 = watch(asterisk);
+    source.next(null);
+    source.next(null);
+    expect(watch1.updates.current).toStrictEqual(['*', '*']);
+    watch1.dispose();
   });
 });

@@ -18,7 +18,6 @@ observable from observable?
 * find
 * interval
 * range
-* mapTo
 * sample
 * take
 * takeUntil
@@ -29,6 +28,5 @@ observable from observable?
 * distinct
 * filter
 * from
-* merge
 * scan
 * zip
