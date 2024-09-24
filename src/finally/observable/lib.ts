@@ -9,10 +9,9 @@ import {
   ObservableState,
   Operate,
 } from './typings.ts';
-import { die, Lazy, pipe } from '../common';
+import { Lazy, pipe } from '../common';
 import { scheduler } from '../scheduler';
 
-const UNSUPPORTED_API_HANDLER_NAMES = new Set(['_unsafe', 'observe', 'pipe']);
 const INTERNALS_KEY = Symbol('@internals');
 const STATE_KEY = Symbol('@state');
 
@@ -35,6 +34,7 @@ export const newObservable = <Value>(value: Value) => ({
     const state: ObservableState<Value> = {
       value,
       destroyed: false,
+      updatedAt: Date.now(),
       observers: new Set<Lazy>(),
       scheduledObservers: new Set<Lazy>(),
       watchers: new Set<Lazy>(),
@@ -48,6 +48,7 @@ export const newObservable = <Value>(value: Value) => ({
     const internals: ObservableInternals<Value> = {
       next: (value) => {
         state.value = value instanceof Function ? value(state.value) : value;
+        state.updatedAt = Date.now();
         callWatchers();
         state.scheduledObservers = new Set(state.observers);
         scheduler.schedule(callObservers);
@@ -63,19 +64,18 @@ export const newObservable = <Value>(value: Value) => ({
     if (api) {
       const record = api(internals.next);
       for (const [key, handler] of Object.entries(record)) {
-        if (UNSUPPORTED_API_HANDLER_NAMES.has(key)) {
-          die(
-            `API handler cannot have a name of "${Array.from(
-              UNSUPPORTED_API_HANDLER_NAMES,
-            ).join(', ')}". Used "${key}"`,
-          );
-        }
         instance[key as keyof API] = handler as Observable<
           Value,
           API
         >[keyof API];
       }
     }
+
+    Object.defineProperty(instance, 'updatedAt', {
+      get: function () {
+        return state.updatedAt;
+      },
+    });
 
     instance.observe = (callback) => {
       const observer = () => callback(state.value);

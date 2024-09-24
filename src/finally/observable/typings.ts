@@ -41,6 +41,8 @@ export type SanitizeAPI<API extends APIRecord> = API extends Record<
   any
 >
   ? never
+  : API extends Record<'updatedAt', any>
+  ? never
   : API extends Record<'pipe', any>
   ? never
   : API extends Record<'_unsafe', any>
@@ -51,6 +53,7 @@ export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
   SanitizeAPI<API> & {
     observe: ObserveFunction<Value>;
     pipe: SelfPipe<Observable<Value>>;
+    updatedAt: number;
     _unsafe: {
       watch: WatchFunction<Value>;
       destroy: Lazy;
@@ -67,7 +70,8 @@ export type ObservableInternals<Value> = {
 
 export type ObservableState<Value> = {
   value: Value;
-  destroyed?: boolean;
+  destroyed: boolean;
+  updatedAt: number;
   observers: Set<Lazy>;
   scheduledObservers: Set<Lazy>;
   watchers: Set<Lazy>;
