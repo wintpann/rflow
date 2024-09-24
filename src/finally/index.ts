@@ -5,5 +5,7 @@ export * from './distinctUntilChanged';
 export * from './map';
 export * from './merge';
 export * from './observable';
+export * from './scan';
 export * from './tap';
 export * from './throttleTime';
+export * from './zip';

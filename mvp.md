@@ -25,8 +25,5 @@ observable from observable?
 * timeInterval
 
 ## definitely
-* distinct
 * filter
 * from
-* scan
-* zip

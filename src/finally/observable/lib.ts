@@ -45,6 +45,8 @@ export const newObservable = <Value>(value: Value) => ({
     const callWatchers = () => call(state.watchers);
     const callDestroyers = () => call(state.destroyers);
 
+    const self = () => state.value;
+
     const internals: ObservableInternals<Value> = {
       next: (value) => {
         state.value = value instanceof Function ? value(state.value) : value;
@@ -53,11 +55,10 @@ export const newObservable = <Value>(value: Value) => ({
         state.scheduledObservers = new Set(state.observers);
         scheduler.schedule(callObservers);
       },
+      self,
     };
 
-    const read = () => state.value;
-
-    const instance = read as Observable<Value, API>;
+    const instance = self as Observable<Value, API>;
     (instance as any)[INTERNALS_KEY] = internals;
     (instance as any)[STATE_KEY] = state;
 

@@ -66,6 +66,7 @@ export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
 
 export type ObservableInternals<Value> = {
   next: Next<Value>;
+  self: () => Value;
 };
 
 export type ObservableState<Value> = {
