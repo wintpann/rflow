@@ -15,7 +15,7 @@ export interface Operate {
     destination: Destination;
     define?: (
       internals: ObservableInternals<ObservableValue<Destination>>,
-    ) => OnDestroy | void;
+    ) => OnDestroy | OnDestroy[] | void;
   }): Destination;
 }
 

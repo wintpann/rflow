@@ -10,20 +10,14 @@ export const zip: Zip = (
 
   return operate({
     destination: observable(shift()).create(),
-    define: ({ next }) => {
-      const unwatchers = observables.map((observable, index) =>
+    define: ({ next }) =>
+      observables.map((observable, index) =>
         observable._unsafe.watch((value) => {
           stacks[index].push(value);
           if (canNext()) {
             next(shift());
           }
         }),
-      );
-      return () => {
-        for (const unwatch of unwatchers) {
-          unwatch();
-        }
-      };
-    },
+      ),
   });
 };

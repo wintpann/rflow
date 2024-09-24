@@ -7,15 +7,9 @@ export const merge: Merge = (
   const latest = observables.sort((a, b) => b.updatedAt - a.updatedAt)[0];
   return operate({
     destination: observable(latest()).create(),
-    define: ({ next }) => {
-      const unwatchers = observables.map((observable) =>
+    define: ({ next }) =>
+      observables.map((observable) =>
         observable._unsafe.watch((value) => next(value)),
-      );
-      return () => {
-        for (const unwatch of unwatchers) {
-          unwatch();
-        }
-      };
-    },
+      ),
   });
 };

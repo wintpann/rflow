@@ -20,15 +20,9 @@ export const combine: Combine = (...items: any[]): Observable<any> => {
 
   return operate({
     destination: observable(value()).create(),
-    define: ({ next }) => {
-      const unwatchers = observables.map((observable) =>
+    define: ({ next }) =>
+      observables.map((observable) =>
         observable._unsafe.watch(() => next(value())),
-      );
-      return () => {
-        for (const unwatch of unwatchers) {
-          unwatch();
-        }
-      };
-    },
+      ),
   });
 };

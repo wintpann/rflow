@@ -129,7 +129,10 @@ export const operate: Operate = ({ destination, define }) => {
   if (define) {
     const onDestroy = define(getInternals(destination));
     if (onDestroy) {
-      getState(destination).destroyers.add(onDestroy);
+      const destroyers = Array.isArray(onDestroy) ? onDestroy : [onDestroy];
+      for (const destroyer of destroyers) {
+        getState(destination).destroyers.add(destroyer);
+      }
     }
   }
   return destination;
