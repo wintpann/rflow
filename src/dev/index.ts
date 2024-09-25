@@ -1,4 +1,4 @@
 import './expose-window.ts';
-import { Starter } from './stories/starter.tsx';
+import { Starter } from './starter.tsx';
 
 export const stories = { Starter };
