@@ -16,13 +16,10 @@ observable from observable?
 * every
 * find
 * interval
+* from
 * range
 * sample
 * take
 * takeUntil
 * takeWhile
 * timeInterval
-
-## definitely
-* filter
-* from
