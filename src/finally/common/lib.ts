@@ -6,3 +6,7 @@ export const pipe: Pipe = (value: any, ...fns: any) =>
 export const die = (message: string) => {
   throw new Error(message);
 };
+
+export const critical = (message: string) => {
+  console.error(message);
+};

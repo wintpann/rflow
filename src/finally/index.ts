@@ -1,6 +1,7 @@
 export * from './combine';
 export * from './common';
 export * from './debounceTime';
+export * from './fromEvent';
 export * from './distinctUntilChanged';
 export * from './map';
 export * from './merge';

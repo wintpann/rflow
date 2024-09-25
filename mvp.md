@@ -2,7 +2,6 @@ destroy behavior?
 observable from observable?
 
 ## maybe
-* fromEvent
 * audit
 * auditTime
 * buffer
