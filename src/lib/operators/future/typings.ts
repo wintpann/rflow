@@ -1,17 +1,29 @@
-export type FutureIdle = { data: null; error: null; state: 'idle' };
+export type FutureIdle = {
+  data: null;
+  error: null;
+  state: 'idle';
+  _tag: 'future';
+};
 
 export type FuturePending<A> = {
   data: A | null;
   error: null;
   state: 'pending';
+  _tag: 'future';
 };
 
-export type FutureSuccess<A> = { data: A; error: null; state: 'success' };
+export type FutureSuccess<A> = {
+  data: A;
+  error: null;
+  state: 'success';
+  _tag: 'future';
+};
 
 export type FutureFailure<E = Error> = {
   data: null;
   error: E;
   state: 'failure';
+  _tag: 'future';
 };
 
 export type Future<A, E = Error> =
@@ -20,27 +32,14 @@ export type Future<A, E = Error> =
   | FutureSuccess<A>
   | FutureFailure<E>;
 
-export interface FutureMap {
-  <A, B, E>(f: (a: A) => B): (future: Future<A, E>) => Future<B, E>;
-}
+export interface CombineFuture {
+  <S extends Record<string, Future<any, any>>>(struct: S): Future<
+    {
+      [K in keyof S]: S[K] extends Future<infer R, any> ? R : never;
+    },
+    S extends Record<string, Future<any, infer R>> ? R : never
+  >;
 
-export interface FutureMapLeft {
-  <E1, E2, A>(f: (e1: E1) => E2): (future: Future<A, E1>) => Future<A, E2>;
-}
-
-export interface FutureGetOrElse {
-  <A, E>(onElse: () => A): (future: Future<A, E>) => A;
-}
-
-export interface FutureToNullable {
-  <A, E>(future: Future<A, E>): A | null;
-}
-
-export interface FutureChain {
-  <A, B, E>(f: (a: A) => Future<B, E>): (future: Future<A, E>) => Future<B, E>;
-}
-
-export interface FutureSequence {
   <A, E>(a: Future<A, E>): Future<[A], E>;
 
   <A, B, E>(a: Future<A, E>, b: Future<B, E>): Future<[A, B], E>;
@@ -121,20 +120,15 @@ export interface FutureSequence {
   ): Future<[A, B, C, D, F, G, H, I, J, K], E>;
 }
 
-export interface FutureCombine {
-  <S extends Record<string, Future<any, any>>>(struct: S): Future<
-    {
-      [K in keyof S]: S[K] extends Future<infer R, any> ? R : never;
-    },
-    S extends Record<string, Future<any, infer R>> ? R : never
-  >;
-}
-
-export interface FutureFold {
+export interface MatchFuture {
   <A, B, E>(
-    onInitial: () => B,
-    onPending: (data: A | null) => B,
-    onFailure: (e: E) => B,
     onSuccess: (a: A) => B,
+    onFailure: (e: E) => B,
+    onPending: (data: A | null) => B,
+    onIdle: () => B,
   ): (future: Future<A, E>) => B;
+
+  <A, B, E>(onHasData: (a: A) => B, onNoData: () => B): (
+    future: Future<A, E>,
+  ) => B;
 }

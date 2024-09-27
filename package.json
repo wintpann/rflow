@@ -40,9 +40,6 @@
     "release": "yarn build && npx np",
     "release:local": "yarn build && ./release-local.sh"
   },
-  "peerDependencies": {
-    "mobx": ">=6.0.2"
-  },
   "devDependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@rollup/plugin-node-resolve": "^15.1.0",
@@ -55,7 +52,6 @@
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "@vitejs/plugin-react": "^4.0.0",
-    "babel-plugin-jsx-wrapper": "^1.0.0",
     "cross-env": "^7.0.3",
     "dts-bundle-generator": "^8.0.1",
     "eslint": "^8.38.0",

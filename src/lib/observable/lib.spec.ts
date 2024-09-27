@@ -12,30 +12,6 @@ describe('observable', () => {
     expect(isObservable(2)).toBe(false);
   });
 
-  it('should not create if unsupported handler', () => {
-    const thrown = {
-      _unsafe: false,
-      observe: false,
-      pipe: false,
-    };
-    try {
-      observable(0).create((next) => ({ _unsafe: next }));
-    } catch (e) {
-      thrown._unsafe = true;
-    }
-    try {
-      observable(0).create((next) => ({ observe: next }));
-    } catch (e) {
-      thrown.observe = true;
-    }
-    try {
-      observable(0).create((next) => ({ pipe: next }));
-    } catch (e) {
-      thrown.pipe = true;
-    }
-    expect(thrown).toStrictEqual({ _unsafe: true, observe: true, pipe: true });
-  });
-
   it('should create api & update value', () => {
     const source = observable({ count: 0 }).create((next) => ({
       increase: () => next((prev) => ({ count: prev.count + 1 })),

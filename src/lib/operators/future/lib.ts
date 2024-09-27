@@ -1,42 +1,43 @@
 import {
   Future,
-  FutureChain,
-  FutureCombine,
   FutureFailure,
-  FutureFold,
-  FutureGetOrElse,
-  FutureIdle,
-  FutureMap,
-  FutureMapLeft,
-  FuturePending,
-  FutureSequence,
   FutureSuccess,
-  FutureToNullable,
+  FutureIdle,
+  CombineFuture,
+  MatchFuture,
+  FuturePending,
 } from './typings.ts';
 
 const idle = <A, E = Error>(): Future<A, E> => ({
   data: null,
   error: null,
   state: 'idle',
+  _tag: 'future',
 });
 
 const failure = <A, E = Error>(error: E): Future<A, E> => ({
   error,
   state: 'failure',
+  _tag: 'future',
   data: null,
 });
 
-const of = <A, E = Error>(data: A): Future<A, E> => ({
+const success = <A, E = Error>(data: A): Future<A, E> => ({
   error: null,
   state: 'success',
+  _tag: 'future',
   data,
 });
 
 const pending = <A, E = Error>(data?: A): Future<A, E> => ({
   error: null,
   state: 'pending',
+  _tag: 'future',
   data: data ?? null,
 });
+
+const isFuture = <A, E = Error>(future: any): future is Future<A, E> =>
+  future?._tag === 'future';
 
 const isPending = <A, E = Error>(
   future: Future<A, E>,
@@ -53,11 +54,11 @@ const isFailure = <A, E = Error>(
   future: Future<A, E>,
 ): future is FutureFailure<E> => future.state === 'failure';
 
-const map: FutureMap =
-  <A, B, E = Error>(f: (a: A) => B) =>
+const map =
+  <A, B, E>(f: (a: A) => B) =>
   (future: Future<A, E>): Future<B, E> => {
     if (isSuccess(future)) {
-      return of(f(future.data));
+      return success(f(future.data));
     }
 
     if (isPending(future) && future.data !== null) {
@@ -67,7 +68,7 @@ const map: FutureMap =
     return future as Future<B, E>;
   };
 
-const mapLeft: FutureMapLeft =
+const mapLeft =
   <E1, E2, A>(f: (e1: E1) => E2) =>
   (future: Future<A, E1>): Future<A, E2> => {
     if (isFailure(future)) {
@@ -77,7 +78,7 @@ const mapLeft: FutureMapLeft =
     return future;
   };
 
-const getOrElse: FutureGetOrElse =
+const getOrElse =
   <A, E>(onElse: () => A) =>
   (future: Future<A, E>) => {
     if (isSuccess(future)) {
@@ -91,25 +92,25 @@ const getOrElse: FutureGetOrElse =
     return onElse();
   };
 
-const toNullable: FutureToNullable = <A, E>(future: Future<A, E>): A | null =>
+const toNullable = <A, E>(future: Future<A, E>): A | null =>
   getOrElse<A | null, E>(() => null)(future);
 
-const chain: FutureChain =
-  <A, B, E = Error>(f: (a: A) => Future<B, E>) =>
-  (future: Future<A, E>): Future<B, E> => {
-    if (isSuccess(future)) {
-      return f(future.data);
+const match: MatchFuture =
+  <A, B, E = Error>(...args: any[]) =>
+  (data: Future<A, E>): B => {
+    if (args.length === 2) {
+      return data.data ? args[0](data.data) : args[1]();
     }
-    if (isPending(future) && future.data !== null) {
-      return f(future.data);
-    }
-    return future as Future<B, E>;
+    if (isIdle(data)) return args[3]();
+    if (isFailure(data)) return args[1](data.error);
+    if (isSuccess(data)) return args[0](data.data);
+    return args[2](data.data);
   };
 
-const sequence = ((...list: Future<any, any>[]) => {
+const sequence = (...list: Future<any, any>[]) => {
   const everySuccess = list.every(isSuccess);
   if (everySuccess) {
-    return of(list.map(({ data }) => data));
+    return success(list.map(({ data }) => data));
   }
 
   const failureEntry = list.find(isFailure);
@@ -131,9 +132,9 @@ const sequence = ((...list: Future<any, any>[]) => {
   }
 
   return idle();
-}) as FutureSequence;
+};
 
-const combine = ((struct: Record<string, Future<any, any>>) => {
+const combine = (struct: Record<string, Future<any, any>>) => {
   const entries = Object.entries(struct);
   const list = entries.map(([, el]) => el);
 
@@ -145,7 +146,7 @@ const combine = ((struct: Record<string, Future<any, any>>) => {
     entries.forEach(([key, el]) => {
       result[key] = el.data;
     });
-    return of(result);
+    return success(result);
   }
 
   if (isPending(tupleSequence) && tupleSequence.data !== null) {
@@ -160,26 +161,16 @@ const combine = ((struct: Record<string, Future<any, any>>) => {
     return tupleSequence;
 
   return idle();
-}) as FutureCombine;
+};
 
-const fold: FutureFold =
-  <A, B, E = Error>(
-    onInitial: () => B,
-    onPending: (data: A | null) => B,
-    onFailure: (e: E) => B,
-    onSuccess: (a: A) => B,
-  ) =>
-  (data: Future<A, E>): B => {
-    if (isIdle(data)) return onInitial();
-    if (isFailure(data)) return onFailure(data.error);
-    if (isSuccess(data)) return onSuccess(data.data);
-    return onPending(data.data);
-  };
+const combineFuture: CombineFuture = ((...args: any[]) => {
+  return isFuture(args[0]) ? sequence(...args) : combine(args[0]);
+}) as CombineFuture;
 
 export const future = {
   idle,
   failure,
-  of,
+  success,
   pending,
   isPending,
   isSuccess,
@@ -189,8 +180,6 @@ export const future = {
   mapLeft,
   getOrElse,
   toNullable,
-  chain,
-  sequence,
-  combine,
-  fold,
+  match,
+  combine: combineFuture,
 };
