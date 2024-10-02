@@ -34,3 +34,20 @@ const pictures = query({
 const App = () => {
   const data = useQuery(pictures);
 };
+
+// ============================
+
+const todos = query({
+  args: ids,
+  dependsOn: [images],
+  key: (ids) => ['todos', ids],
+  enabled: (ids) => ids.length > 0,
+  fn: (ids, signal) => api.getPictures(params, signal),
+  refetchInterval: 200 | false | (({ args, data }) => false),
+  onError: (e) => {},
+  onSuccess: (data) => {},
+  initialData: null,
+  retry: boolean | number | ((failureCount: number, error: E) => boolean),
+  retryDelay: number | ((failureCount: number, error: E) => number),
+  cacheTime: number,
+});
