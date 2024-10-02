@@ -25,7 +25,7 @@ export type QueryParams<
   fn: (args: Args, signal: AbortSignal) => Promise<Data>;
   args?: Args;
   dependsOn?: ContinualObservable | ContinualObservable[];
-  key?: (args: Args) => QueryKey;
+  key: (args: Args) => QueryKey;
   enabled?: (args: Args) => boolean;
   refetchInterval?:
     | number
