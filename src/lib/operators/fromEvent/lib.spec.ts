@@ -10,9 +10,9 @@ describe('fromEvent', () => {
       'event-name',
     );
 
-    const dispose1 = source.listen();
+    source.start();
     expect(addEventListener).toHaveBeenCalledTimes(1);
-    dispose1();
+    source.stop();
     expect(removeEventListener).toHaveBeenCalledTimes(1);
   });
 
@@ -25,9 +25,9 @@ describe('fromEvent', () => {
       'event-name',
     );
 
-    const dispose1 = source.listen();
+    source.start();
     expect(addEventListener).toHaveBeenCalledTimes(1);
-    dispose1();
+    source.stop();
     expect(removeEventListener).toHaveBeenCalledTimes(1);
   });
 
@@ -37,9 +37,9 @@ describe('fromEvent', () => {
 
     const source = fromEvent('event-name');
 
-    const dispose1 = source.listen({ addEventListener, removeEventListener });
+    source.start({ addEventListener, removeEventListener });
     expect(addEventListener).toHaveBeenCalledTimes(1);
-    dispose1();
+    source.stop();
     expect(removeEventListener).toHaveBeenCalledTimes(1);
   });
 });

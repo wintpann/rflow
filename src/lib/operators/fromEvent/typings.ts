@@ -1,4 +1,4 @@
-import { Observable, UnobserveFunction } from '../../observable';
+import { ContinualObservable } from '../../observable';
 import { Lazy } from '../../common';
 
 export type HasAddRemoveEventListener = {
@@ -16,7 +16,7 @@ export interface FromEvent {
     input: Document,
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<EventType | null>;
 
   <
     EventName extends keyof WindowEventMap,
@@ -25,7 +25,7 @@ export interface FromEvent {
     input: Window,
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<EventType | null>;
 
   <
     EventName extends keyof HTMLElementEventMap,
@@ -34,7 +34,7 @@ export interface FromEvent {
     input: HTMLElement | Lazy<HTMLElement>,
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<EventType | null>;
 
   <
     EventName extends keyof HTMLElementEventMap,
@@ -42,9 +42,9 @@ export interface FromEvent {
   >(
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<
+  ): ContinualObservable<
     EventType | null,
-    { listen: (input: HTMLElement) => UnobserveFunction }
+    { start: (input: HTMLElement) => void; stop: () => void }
   >;
 
   <
@@ -54,7 +54,10 @@ export interface FromEvent {
     input: EventSource | Lazy<EventSource>,
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<
+    EventType | null,
+    { start: () => void; stop: () => void }
+  >;
 
   <
     EventName extends keyof EventSourceEventMap,
@@ -62,9 +65,9 @@ export interface FromEvent {
   >(
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<
+  ): ContinualObservable<
     EventType | null,
-    { listen: (input: EventSource) => UnobserveFunction }
+    { start: (input: EventSource) => void; stop: () => void }
   >;
 
   <
@@ -74,7 +77,7 @@ export interface FromEvent {
     input: WebSocket | Lazy<WebSocket>,
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<EventType | null>;
 
   <
     EventName extends keyof WebSocketEventMap,
@@ -82,22 +85,25 @@ export interface FromEvent {
   >(
     eventName: EventName,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<
+  ): ContinualObservable<
     EventType | null,
-    { listen: (input: WebSocket) => UnobserveFunction }
+    { start: (input: WebSocket) => void; stop: () => void }
   >;
 
   <EventType extends Event = Event>(
     input: HasAddRemoveEventListener | Lazy<HasAddRemoveEventListener>,
     eventName: string,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<EventType | null, { listen: () => UnobserveFunction }>;
+  ): ContinualObservable<EventType | null>;
 
   <EventType extends Event = Event>(
     eventName: string,
     options?: UseCapture | AddEventListenerOptions,
-  ): Observable<
+  ): ContinualObservable<
     EventType | null,
-    { listen: (input: HasAddRemoveEventListener) => UnobserveFunction }
+    {
+      start: (input: HasAddRemoveEventListener) => void;
+      stop: () => void;
+    }
   >;
 }

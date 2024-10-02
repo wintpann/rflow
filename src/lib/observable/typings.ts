@@ -88,3 +88,13 @@ export type CreateObservable<Value> = {
 export interface NewObservable {
   <Value>(value: Value): CreateObservable<Value>;
 }
+
+export type ContinualAPI = {
+  start: () => void;
+  stop: () => void;
+};
+
+export type ContinualObservable<
+  Value = unknown,
+  API extends ContinualAPI = ContinualAPI,
+> = Observable<Value, API>;
