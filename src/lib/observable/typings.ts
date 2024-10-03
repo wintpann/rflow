@@ -90,8 +90,7 @@ export interface NewObservable {
 }
 
 export type ContinualAPI = {
-  start: () => void;
-  stop: () => void;
+  listen: () => UnobserveFunction;
 };
 
 export type ContinualObservable<

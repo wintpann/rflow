@@ -37,3 +37,5 @@ export const watch = <Value>(
 export const read = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ) => observable();
+
+export const nextTick = async () => await new Promise(process.nextTick);

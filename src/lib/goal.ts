@@ -38,16 +38,41 @@ const App = () => {
 // ============================
 
 const todos = query({
+  fn: (ids, signal) => api.getPictures(params, signal),
+  key: (ids) => ['todos', ids],
   args: ids,
   dependsOn: [images],
-  key: (ids) => ['todos', ids],
   enabled: (ids) => ids.length > 0,
-  fn: (ids, signal) => api.getPictures(params, signal),
-  refetchInterval: 200 | false | (({ args, data }) => false),
+  initialData: null,
+  onRequest: (ids) => {},
   onError: (e) => {},
   onSuccess: (data) => {},
-  initialData: null,
+  onSettled: (value, args) => {},
+  refetchInterval: 200 | false | (({ args, data }) => false),
   retry: boolean | number | ((failureCount: number, error: E) => boolean),
   retryDelay: number | ((failureCount: number, error: E) => number),
   cacheTime: number,
+});
+
+const addTodo = mutation({
+  fn: (text, signal) => api.addTodo(text, signal),
+  key: (text) => ['add-todo', text],
+  onError: (e) => {},
+  onSuccess: (data) => {},
+  onSettled: (data) => {},
+  onRequest: (args) => {},
+  retry: boolean | number | ((failureCount: number, error: E) => boolean),
+  retryDelay: number | ((failureCount: number, error: E) => number),
+});
+
+queryClient.set(
+  ['cart-count'],
+  future.map((s) => s + 1),
+);
+
+import { queryClient } from 'x-state';
+queryClient.defaults({
+  mutation: {
+    retry: 2000,
+  },
 });

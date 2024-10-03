@@ -1,12 +1,18 @@
-## implement
+## think about
 * Future default global error
-
-## to discuss
 * A, B, E = A | B
-* destroy behavior?
-* observable from observable?
-* behavior on error?
+* enabled: is T
+
+
+
+
+## think about later
 * default shallow equal check?
+* behavior on error?
+* observable from observable?
+* destroy behavior?
+* prefetchQuery & SSR
+
 
 ## maybe
 * audit
