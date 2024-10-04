@@ -1,4 +1,5 @@
 import { Observable } from '../../observable';
+import { timeoutScheduler } from '../../scheduler';
 
 export const when = <T>(
   source: Observable<T, NonNullable<unknown>>,
@@ -14,13 +15,13 @@ export const when = <T>(
     const unwatch = source._unsafe.watch((value) => {
       if (predicate(value)) {
         unwatch();
-        clearTimeout(timeoutID);
+        timeoutScheduler.clear(timeoutID);
         resolve();
       }
     });
     const timeoutID =
       timeout !== Infinity
-        ? setTimeout(() => {
+        ? timeoutScheduler.schedule(() => {
             reject();
             unwatch();
           }, timeout)

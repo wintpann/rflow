@@ -1,6 +1,15 @@
 import { when } from './lib.ts';
 import { of } from '../../observable';
 import { nextTick } from '../../test-utils.ts';
+import { testTimeoutScheduler } from '../../scheduler';
+
+jest.mock('../../scheduler', () => {
+  const module = jest.requireActual('../../scheduler');
+  return {
+    ...module,
+    timeoutScheduler: module.testTimeoutScheduler,
+  };
+});
 
 describe('when', () => {
   it('should resolve', async () => {
@@ -71,19 +80,12 @@ describe('when', () => {
   });
 
   it('should reject', async () => {
-    const original = global.setTimeout;
-    let run = () => void 0;
-    // @ts-ignore
-    global.setTimeout = jest.fn((cb) => {
-      run = cb;
-    });
-
     const source = of(0);
     let result = {
       resolved: false,
       rejected: false,
     };
-    when(source, (v) => v === 3, 1000)
+    when(source, (v) => v === 3, 1001)
       .then(() => {
         result = {
           resolved: true,
@@ -98,13 +100,11 @@ describe('when', () => {
       });
 
     source.next(1);
-    run();
+    testTimeoutScheduler.exec(1001);
     await nextTick();
     expect(result).toStrictEqual({
       resolved: false,
       rejected: true,
     });
-
-    global.setTimeout = original;
   });
 });

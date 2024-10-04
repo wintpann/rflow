@@ -15,11 +15,11 @@ export type QueryOptions<Data, Error, Args> = {
   onSettled?: (value: Future<Data, Error>, args: Args) => void;
   refetchInterval?:
     | number
-    | boolean
+    | false
     | ((data: Data | null, args: Args) => boolean);
   retry?:
     | boolean
-    | number
+    | false
     | ((failureCount: number, error: Error, args: Args) => boolean);
   retryDelay?:
     | number
@@ -83,9 +83,9 @@ export type MutationParams<Data, Error, Args> = {
   key: (args: Args) => QueryKey;
 } & MutationOptions<Data, Error, Args>;
 
-export type MutationResult<Data, Error, Args> = ContinualObservable<
+export type MutationResult<Data, Error, Args> = Observable<
   Future<Data, Error>,
-  ContinualAPI & {
+  {
     isSuccess: () => boolean;
     isIdle: () => boolean;
     isPending: () => boolean;

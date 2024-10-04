@@ -1,6 +1,6 @@
 import { observable, isObservable, of } from './lib.ts';
 import { observe, watch } from '../test-utils.ts';
-import { scheduler } from '../scheduler';
+import { nextTickScheduler } from '../scheduler';
 
 describe('observable', () => {
   it('should create observable', () => {
@@ -26,14 +26,14 @@ describe('observable', () => {
     source.set(1);
     expect(observe1.updates.current).toStrictEqual([]);
     expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
     expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
 
     source.increase();
     expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
     expect(watch1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([
       { count: 1 },
       { count: 2 },
@@ -52,7 +52,7 @@ describe('observable', () => {
     const observe1 = observe(source);
     const watch1 = watch(source);
     source.increase();
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([1]);
     expect(watch1.updates.current).toStrictEqual([1]);
 
@@ -60,7 +60,7 @@ describe('observable', () => {
     source.increase();
     source.increase();
     source.increase();
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([1, 5]);
     expect(watch1.updates.current).toStrictEqual([1, 2, 3, 4, 5]);
   });

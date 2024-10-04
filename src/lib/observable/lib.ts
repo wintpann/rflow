@@ -10,7 +10,7 @@ import {
   Operate,
 } from './typings.ts';
 import { Lazy, pipe } from '../common';
-import { scheduler } from '../scheduler';
+import { nextTickScheduler } from '../scheduler';
 
 const INTERNALS_KEY = Symbol('@internals');
 const STATE_KEY = Symbol('@state');
@@ -53,7 +53,7 @@ export const newObservable = <Value>(value: Value) => ({
         state.updatedAt = Date.now();
         callWatchers();
         state.scheduledObservers = new Set(state.observers);
-        scheduler.schedule(callObservers);
+        nextTickScheduler.schedule(callObservers);
       },
       self,
     };

@@ -1,6 +1,6 @@
 import { Lazy } from '../common';
 
-class Scheduler {
+class NextTickScheduler {
   private callbacks = new Set<Lazy>();
 
   schedule(callback: Lazy) {
@@ -10,16 +10,61 @@ class Scheduler {
     }
   }
 
-  isScheduled(callback: Lazy) {
-    return this.callbacks.has(callback);
-  }
-
   flush() {
     for (const callback of this.callbacks.values()) {
       callback();
     }
-    scheduler.callbacks.clear();
+    this.callbacks.clear();
   }
 }
 
-export const scheduler = new Scheduler();
+class TimeoutScheduler {
+  schedule(callback: Lazy, ms: number) {
+    return window.setTimeout(callback, ms);
+  }
+
+  clear(timeoutID: number | undefined) {
+    window.clearTimeout(timeoutID);
+  }
+}
+
+class TestTimeoutScheduler implements TimeoutScheduler {
+  private records = new Set<{
+    callback: Lazy;
+    ms: number;
+    timeoutID: number;
+  }>();
+
+  private numberUID = (() => {
+    let id = 0;
+    return () => id++;
+  })();
+
+  exec(ms: number) {
+    const record = Array.from(this.records.values()).find((el) => el.ms === ms);
+    if (record) {
+      record.callback();
+      this.records.delete(record);
+    }
+  }
+
+  schedule(callback: Lazy, ms: number) {
+    const timeoutID = this.numberUID();
+    this.records.add({ callback, ms, timeoutID });
+    return timeoutID;
+  }
+
+  clear(timeoutID: number | undefined) {
+    const record = Array.from(this.records.values()).find(
+      (el) => el.timeoutID === timeoutID,
+    );
+    if (record) {
+      this.records.delete(record);
+    }
+  }
+}
+
+export const testTimeoutScheduler = new TestTimeoutScheduler();
+export const timeoutScheduler = new TimeoutScheduler();
+
+export const nextTickScheduler = new NextTickScheduler();

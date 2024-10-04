@@ -1,6 +1,6 @@
 import { of } from '../../observable';
 import { observe } from '../../test-utils.ts';
-import { scheduler } from '../../scheduler';
+import { nextTickScheduler } from '../../scheduler';
 import { debounceTime } from './lib.ts';
 
 jest.mock('lodash-es', () => ({
@@ -34,11 +34,11 @@ describe('debounceTime', () => {
 
     source.next(3);
     source.next(4);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([]);
     // @ts-ignore
     global.execDebounce();
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([4]);
 
     observe1.dispose();

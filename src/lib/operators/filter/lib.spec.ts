@@ -1,7 +1,7 @@
 import { filter } from './lib.ts';
 import { observe } from '../../test-utils.ts';
 import { of } from '../../observable';
-import { scheduler } from '../../scheduler';
+import { nextTickScheduler } from '../../scheduler';
 
 describe('filter', () => {
   it('should work on unobserved access', () => {
@@ -29,7 +29,7 @@ describe('filter', () => {
 
     source.next(3);
     source.next(4);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([3]);
     expect(observe2.updates.current).toStrictEqual([4]);
 

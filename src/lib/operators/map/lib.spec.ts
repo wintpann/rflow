@@ -1,7 +1,7 @@
 import { map, mapTo } from './lib.ts';
 import { observe, watch } from '../../test-utils.ts';
 import { of } from '../../observable';
-import { scheduler } from '../../scheduler';
+import { nextTickScheduler } from '../../scheduler';
 
 describe('map', () => {
   it('should work on unobserved access', () => {
@@ -24,7 +24,7 @@ describe('map', () => {
 
     source.next(3);
     source.next(4);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([8]);
 
     observe1.dispose();
@@ -38,7 +38,7 @@ describe('map', () => {
     const observe1 = observe(doubledPlusOne);
     source.next(3);
     source.next(4);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(doubledPlusOne()).toBe(9);
 
     observe1.dispose();

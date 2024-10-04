@@ -1,7 +1,7 @@
 import { of } from '../../observable';
 import { distinctUntilChanged } from './lib.ts';
 import { observe } from '../../test-utils.ts';
-import { scheduler } from '../../scheduler';
+import { nextTickScheduler } from '../../scheduler';
 
 describe('distinctUntilChanged', () => {
   it('should work on unobserved access', () => {
@@ -25,7 +25,7 @@ describe('distinctUntilChanged', () => {
 
     source.next(3);
     source.next(4);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([4]);
     expect(observe2.updates.current).toStrictEqual([4]);
 
@@ -47,12 +47,12 @@ describe('distinctUntilChanged', () => {
     expect(runDistincted.updates.current).toStrictEqual([]);
 
     source.next([1, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([[1, 2]]);
     expect(runDistincted.updates.current).toStrictEqual([[1, 2]]);
 
     source.next([1, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([
       [1, 2],
       [1, 2],
@@ -60,7 +60,7 @@ describe('distinctUntilChanged', () => {
     expect(runDistincted.updates.current).toStrictEqual([[1, 2]]);
 
     source.next([2, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([
       [1, 2],
       [1, 2],
@@ -91,12 +91,12 @@ describe('distinctUntilChanged', () => {
     expect(runDistincted.updates.current).toStrictEqual([]);
 
     source.next([1, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([[1, 2]]);
     expect(runDistincted.updates.current).toStrictEqual([[1, 2]]);
 
     source.next([1, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([
       [1, 2],
       [1, 2],
@@ -104,7 +104,7 @@ describe('distinctUntilChanged', () => {
     expect(runDistincted.updates.current).toStrictEqual([[1, 2]]);
 
     source.next([2, 2]);
-    scheduler.flush();
+    nextTickScheduler.flush();
     expect(runSource.updates.current).toStrictEqual([
       [1, 2],
       [1, 2],

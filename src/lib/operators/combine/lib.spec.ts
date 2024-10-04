@@ -1,7 +1,7 @@
 import { of } from '../../observable';
 import { combine } from './lib.ts';
 import { observe } from '../../test-utils.ts';
-import { scheduler } from '../../scheduler';
+import { nextTickScheduler } from '../../scheduler';
 
 describe('combine', () => {
   it('should work on unobserved access', () => {
@@ -22,7 +22,7 @@ describe('combine', () => {
     text.next('2');
     count.next(1);
     count.next(2);
-    scheduler.flush();
+    nextTickScheduler.flush();
 
     expect(observe1.updates.current).toStrictEqual([['2', 2]]);
   });
