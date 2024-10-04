@@ -79,6 +79,35 @@ describe('when', () => {
     });
   });
 
+  it('should resolve and clear timeout', async () => {
+    const source = of(0);
+    let result = {
+      resolved: false,
+      rejected: false,
+    };
+    when(source, (v) => v === 3, 1001)
+      .then(() => {
+        result = {
+          resolved: true,
+          rejected: false,
+        };
+      })
+      .catch(() => {
+        result = {
+          resolved: false,
+          rejected: true,
+        };
+      });
+
+    source.next(3);
+    await nextTick();
+    expect(result).toStrictEqual({
+      resolved: true,
+      rejected: false,
+    });
+    expect(testTimeoutScheduler.isPresent(1001)).toBeFalsy();
+  });
+
   it('should reject', async () => {
     const source = of(0);
     let result = {

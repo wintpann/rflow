@@ -40,12 +40,20 @@ class TestTimeoutScheduler implements TimeoutScheduler {
     return () => id++;
   })();
 
+  private find(ms: number) {
+    return Array.from(this.records.values()).find((el) => el.ms === ms);
+  }
+
   exec(ms: number) {
-    const record = Array.from(this.records.values()).find((el) => el.ms === ms);
+    const record = this.find(ms);
     if (record) {
       record.callback();
       this.records.delete(record);
     }
+  }
+
+  isPresent(ms: number) {
+    return !!this.find(ms);
   }
 
   schedule(callback: Lazy, ms: number) {
