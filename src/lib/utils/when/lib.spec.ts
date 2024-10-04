@@ -114,7 +114,7 @@ describe('when', () => {
       resolved: false,
       rejected: false,
     };
-    when(source, (v) => v === 3, 1001)
+    when(source, (v) => v === 3, 1002)
       .then(() => {
         result = {
           resolved: true,
@@ -129,7 +129,7 @@ describe('when', () => {
       });
 
     source.next(1);
-    testTimeoutScheduler.exec(1001);
+    testTimeoutScheduler.exec(1002);
     await nextTick();
     expect(result).toStrictEqual({
       resolved: false,
