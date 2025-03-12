@@ -76,3 +76,30 @@ queryClient.defaults({
     retry: 2000,
   },
 });
+
+const count1 = fromStorage(0).create((next) => ({
+  increment: () => next((prev) => prev + 1),
+}));
+
+const count2 = observable(0)
+  .create((next) => ({ increment: () => next((prev) => prev + 1) }))
+  .pipe(storage());
+
+const name = of('');
+const greeting = input.pipe(map((name) => `Hello, ${name}!`));
+const user = query({
+  fn: (name) => api.getUser(name, signal),
+  key: (name) => ['user', name],
+  args: name.pipe(debounceTime(200)),
+  enabled: (name) => !!name,
+});
+
+export const Greeting = observer(() => {
+  return (
+    <>
+      <input value={input()} onChange={(e) => name.next(e.target.value)} />
+      {greeting()}
+      {user().data}
+    </>
+  );
+});
