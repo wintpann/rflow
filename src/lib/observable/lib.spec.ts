@@ -1,5 +1,5 @@
 import { observable, isObservable, of } from './lib.ts';
-import { observe, watch } from '../test-utils.ts';
+import { observe, observeSync } from '../test-utils.ts';
 import { nextTickScheduler } from '../scheduler';
 
 describe('observable', () => {
@@ -13,48 +13,54 @@ describe('observable', () => {
   });
 
   it('should create api & update value', () => {
-    const source = observable({ count: 0 }).create((next) => ({
+    const source = observable({ count: 0 }).api((next) => ({
       increase: () => next((prev) => ({ count: prev.count + 1 })),
       set: (count: number) => next({ count }),
     }));
 
     const observe1 = observe(source);
-    const watch1 = watch(source);
+    const observeSync1 = observeSync(source);
     expect(observe1.updates.current).toStrictEqual([]);
-    expect(watch1.updates.current).toStrictEqual([]);
+    expect(observeSync1.updates.current).toStrictEqual([]);
 
     source.set(1);
     expect(observe1.updates.current).toStrictEqual([]);
-    expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
+    expect(observeSync1.updates.current).toStrictEqual([{ count: 1 }]);
     nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
-    expect(watch1.updates.current).toStrictEqual([{ count: 1 }]);
+    expect(observeSync1.updates.current).toStrictEqual([{ count: 1 }]);
 
     source.increase();
     expect(observe1.updates.current).toStrictEqual([{ count: 1 }]);
-    expect(watch1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
+    expect(observeSync1.updates.current).toStrictEqual([
+      { count: 1 },
+      { count: 2 },
+    ]);
     nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([
       { count: 1 },
       { count: 2 },
     ]);
-    expect(watch1.updates.current).toStrictEqual([{ count: 1 }, { count: 2 }]);
+    expect(observeSync1.updates.current).toStrictEqual([
+      { count: 1 },
+      { count: 2 },
+    ]);
 
     observe1.dispose();
-    watch1.dispose();
+    observeSync1.dispose();
   });
 
   it('should schedule multiple sync updates', () => {
-    const source = observable(0).create((next) => ({
+    const source = observable(0).api((next) => ({
       increase: () => next((prev) => prev + 1),
     }));
 
     const observe1 = observe(source);
-    const watch1 = watch(source);
+    const observeSync1 = observeSync(source);
     source.increase();
     nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([1]);
-    expect(watch1.updates.current).toStrictEqual([1]);
+    expect(observeSync1.updates.current).toStrictEqual([1]);
 
     source.increase();
     source.increase();
@@ -62,6 +68,6 @@ describe('observable', () => {
     source.increase();
     nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([1, 5]);
-    expect(watch1.updates.current).toStrictEqual([1, 2, 3, 4, 5]);
+    expect(observeSync1.updates.current).toStrictEqual([1, 2, 3, 4, 5]);
   });
 });

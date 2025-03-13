@@ -9,10 +9,10 @@ export const zip: Zip = (
   const canNext = () => stacks.every((stack) => stack.length > 0);
 
   return operate({
-    destination: observable(shift()).create(),
+    destination: observable(shift()).api(),
     define: ({ next }) =>
       observables.map((observable, index) =>
-        observable._unsafe.watch((value) => {
+        observable.observeSync((value) => {
           stacks[index].push(value);
           if (canNext()) {
             next(shift());

@@ -9,9 +9,9 @@ export const distinctUntilChanged =
     let lastValue = source();
 
     return operate({
-      destination: observable(lastValue).create(),
+      destination: observable(lastValue).api(),
       define: ({ next }) =>
-        source._unsafe.watch((value) => {
+        source.observeSync((value) => {
           const equals = compare(lastValue, value);
           if (!equals) {
             next(value);

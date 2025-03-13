@@ -5,7 +5,7 @@ export const debounceTime =
   <A>(time: number, options?: DebounceSettings) =>
   (source: Observable<A>): Observable<A> =>
     operate({
-      destination: observable(source()).create(),
+      destination: observable(source()).api(),
       define: ({ next }) =>
-        source._unsafe.watch(debounce((value) => next(value), time, options)),
+        source.observeSync(debounce((value) => next(value), time, options)),
     });

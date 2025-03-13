@@ -1,5 +1,5 @@
 import { map, mapTo } from './lib.ts';
-import { observe, watch } from '../../test-utils.ts';
+import { observe, observeSync } from '../../test-utils.ts';
 import { of } from '../../observable';
 import { nextTickScheduler } from '../../scheduler';
 
@@ -48,10 +48,10 @@ describe('map', () => {
     const source = of(null);
     const asterisk = source.pipe(mapTo('*'));
 
-    const watch1 = watch(asterisk);
+    const observeSync1 = observeSync(asterisk);
     source.next(null);
     source.next(null);
-    expect(watch1.updates.current).toStrictEqual(['*', '*']);
-    watch1.dispose();
+    expect(observeSync1.updates.current).toStrictEqual(['*', '*']);
+    observeSync1.dispose();
   });
 });

@@ -17,7 +17,7 @@ export const observe = <Value>(
   return { updates, dispose };
 };
 
-export const watch = <Value>(
+export const observeSync = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
 ) => {
   const updates = {
@@ -27,7 +27,7 @@ export const watch = <Value>(
     },
   };
 
-  const dispose = observable._unsafe.watch((value) => {
+  const dispose = observable.observeSync((value) => {
     updates.current.push(value);
   });
 

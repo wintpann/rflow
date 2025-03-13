@@ -5,7 +5,7 @@ export const throttleTime =
   <A>(time: number, options?: ThrottleSettings) =>
   (source: Observable<A>): Observable<A> =>
     operate({
-      destination: observable(source()).create(),
+      destination: observable(source()).api(),
       define: ({ next }) =>
-        source._unsafe.watch(throttle((value) => next(value), time, options)),
+        source.observeSync(throttle((value) => next(value), time, options)),
     });

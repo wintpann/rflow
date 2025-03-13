@@ -1,21 +1,17 @@
-import { Lazy, SelfPipe } from '../common';
+import { Lazy, SelfPipe } from '../shared';
 
 export type APIRecord = Record<string, (...args: any[]) => unknown>;
 
 export type Next<Value> = (value: Value | ((prev: Value) => Value)) => void;
 
-export type CreateAPI<Value, API extends APIRecord> = (
-  next: Next<Value>,
-) => API;
-
-export type OnDestroy = Lazy;
-
 export interface Operate {
   <Destination extends Observable<any, NonNullable<unknown>>>(parameters: {
     destination: Destination;
-    define?: (
-      internals: ObservableInternals<ObservableValue<Destination>>,
-    ) => OnDestroy | OnDestroy[] | void;
+    define: (
+      helpers: ObservableAdministration<
+        ObservableValue<Destination>
+      >['helpers'],
+    ) => void;
   }): Destination;
 }
 
@@ -23,12 +19,7 @@ export type ObserveFunction<Value> = (
   callback: (value: Value) => void,
 ) => UnobserveFunction;
 
-export type WatchFunction<Value> = (
-  callback: (value: Value) => void,
-) => UnwatchFunction;
-
 export type UnobserveFunction = Lazy;
-export type UnwatchFunction = Lazy;
 
 export interface Callable<Value> {
   (): Value;
@@ -36,64 +27,37 @@ export interface Callable<Value> {
 
 export type NoAPI = Record<string, never>;
 
-export type SanitizeAPI<API extends APIRecord> = API extends Record<
-  'observe',
-  any
->
-  ? never
-  : API extends Record<'updatedAt', any>
-  ? never
-  : API extends Record<'pipe', any>
-  ? never
-  : API extends Record<'_unsafe', any>
-  ? never
-  : API;
-
 export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
-  SanitizeAPI<API> & {
+  Omit<API, 'observe' | 'observeSync' | 'pipe' | 'updatedTimestamp'> & {
     observe: ObserveFunction<Value>;
+    observeSync: ObserveFunction<Value>;
     pipe: SelfPipe<Observable<Value>>;
-    updatedAt: number;
-    _unsafe: {
-      watch: WatchFunction<Value>;
-      destroy: Lazy;
-      type: 'observable';
-    };
+    updatedTimestamp: number;
   };
 
 export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
   ReturnType<T>;
 
-export type ObservableInternals<Value> = {
-  next: Next<Value>;
-  self: () => Value;
+export type ObservableAdministration<Value> = {
+  unsafe_state: Readonly<{
+    value: Value;
+    updatedTimestamp: number;
+    observers: Set<Lazy>;
+    scheduledObservers: Set<Lazy>;
+    syncObservers: Set<Lazy>;
+  }>;
+  helpers: {
+    next: Next<Value>;
+    self: Lazy<Value>;
+  };
 };
 
-export type ObservableState<Value> = {
-  value: Value;
-  destroyed: boolean;
-  updatedAt: number;
-  observers: Set<Lazy>;
-  scheduledObservers: Set<Lazy>;
-  watchers: Set<Lazy>;
-  destroyers: Set<Lazy>;
-};
-
-export type CreateObservable<Value> = {
-  create: <API extends APIRecord = NoAPI>(
-    api?: CreateAPI<Value, API> | null,
+export type DeferAPIConstructor<Value> = {
+  api: <API extends APIRecord = NoAPI>(
+    api?: (next: Next<Value>) => API,
   ) => Observable<Value, API>;
 };
 
-export interface NewObservable {
-  <Value>(value: Value): CreateObservable<Value>;
+export interface MakeObservable {
+  <Value>(value: Value): DeferAPIConstructor<Value>;
 }
-
-export type ContinualAPI = {
-  listen: () => UnobserveFunction;
-};
-
-export type ContinualObservable<
-  Value = unknown,
-  API extends ContinualAPI = ContinualAPI,
-> = Observable<Value, API>;

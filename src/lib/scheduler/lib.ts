@@ -1,4 +1,4 @@
-import { Lazy } from '../common';
+import { Lazy } from '../shared';
 
 class NextTickScheduler {
   private callbacks = new Set<Lazy>();

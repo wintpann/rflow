@@ -1,4 +1,6 @@
-/* eslint-disable */
-// @ts-nocheck
+import * as Lib from '../lib';
 
-export {};
+Object.entries(Lib).forEach(([key, value]) => {
+  // @ts-ignore
+  window[key] = value;
+});

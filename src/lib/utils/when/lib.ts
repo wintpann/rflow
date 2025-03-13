@@ -12,9 +12,9 @@ export const when = <T>(
       return;
     }
 
-    const unwatch = source._unsafe.watch((value) => {
+    const unobserveSync = source.observeSync((value) => {
       if (predicate(value)) {
-        unwatch();
+        unobserveSync();
         timeoutScheduler.clear(timeoutID);
         resolve();
       }
@@ -23,7 +23,7 @@ export const when = <T>(
       timeout !== Infinity
         ? timeoutScheduler.schedule(() => {
             reject();
-            unwatch();
+            unobserveSync();
           }, timeout)
         : undefined;
   });

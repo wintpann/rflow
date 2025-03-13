@@ -1,24 +1,25 @@
 {
-  "name": "mobx-reactive",
+  "name": "rflow",
   "private": false,
   "version": "0.0.0",
-  "description": "MobX reactivity system with power of RxJS declarative operators",
+  "description": "hot stateful streams",
   "author": "wintpann",
   "keywords": [
     "RxJS",
     "mobx",
     "reactive",
-    "functional",
-    "signal"
+    "signal",
+    "streams",
+    "observable"
   ],
-  "homepage": "https://github.com/wintpann/mobx-reactive",
+  "homepage": "https://github.com/wintpann/rflow",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wintpann/mobx-reactive.git"
+    "url": "https://github.com/wintpann/rflow.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wintpann/mobx-reactive/issues",
+    "url": "https://github.com/wintpann/rflow/issues",
     "email": "vvintpann@gmail.com"
   },
   "publishConfig": {

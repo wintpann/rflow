@@ -6,9 +6,9 @@ export const filter =
     const initial = source();
 
     return operate({
-      destination: observable(predicate(initial) ? initial : null).create(),
+      destination: observable(predicate(initial) ? initial : null).api(),
       define: ({ next }) =>
-        source._unsafe.watch((value) => {
+        source.observeSync((value) => {
           if (predicate(value)) {
             next(value);
           }

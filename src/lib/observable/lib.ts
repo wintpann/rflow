@@ -1,84 +1,59 @@
 import {
   APIRecord,
-  CreateAPI,
-  NewObservable,
   Next,
   NoAPI,
   Observable,
-  ObservableInternals,
-  ObservableState,
+  ObservableAdministration,
   Operate,
+  MakeObservable,
+  ObserveFunction,
 } from './typings.ts';
-import { Lazy, pipe } from '../common';
+import { Lazy, pipe } from '../shared';
 import { nextTickScheduler } from '../scheduler';
 
-const INTERNALS_KEY = Symbol('@internals');
-const STATE_KEY = Symbol('@state');
+const ADMINISTRATION = Symbol('$observable');
 
 export const isObservable = <Value = any>(
   target: any,
-): target is Observable<Value> => target?._unsafe?.type === 'observable';
+): target is Observable<Value> => !!target?.[ADMINISTRATION];
 
-const call = (actualSet: Set<Lazy>, checkupSet?: Set<Lazy>) => {
-  for (const callback of actualSet.values()) {
-    if (checkupSet ? checkupSet.has(callback) : true) {
-      callback();
-    }
-  }
-};
+const untypedPipe = pipe as (value: any, ...fns: any) => any;
 
-export const newObservable = <Value>(value: Value) => ({
-  create: <API extends APIRecord = NoAPI>(
-    api?: CreateAPI<Value, API> | null,
-  ) => {
-    const state: ObservableState<Value> = {
+const makeObservable = <Value>(value: Value) => ({
+  api: <API extends APIRecord = NoAPI>(api?: (next: Next<Value>) => API) => {
+    const state = {
       value,
-      destroyed: false,
-      updatedAt: Date.now(),
       observers: new Set<Lazy>(),
       scheduledObservers: new Set<Lazy>(),
-      watchers: new Set<Lazy>(),
-      destroyers: new Set<Lazy>(),
+      syncObservers: new Set<Lazy>(),
+      updatedTimestamp: Date.now(),
     };
 
-    const callObservers = () => call(state.scheduledObservers, state.observers);
-    const callWatchers = () => call(state.watchers);
-    const callDestroyers = () => call(state.destroyers);
+    const invokeObservers = () => {
+      for (const callback of state.scheduledObservers.values()) {
+        if (state.observers.has(callback)) {
+          callback();
+        }
+      }
+    };
+
+    const invokeSyncObservers = () => {
+      for (const callback of state.syncObservers.values()) {
+        callback();
+      }
+    };
 
     const self = () => state.value;
 
-    const internals: ObservableInternals<Value> = {
-      next: (value) => {
-        state.value = value instanceof Function ? value(state.value) : value;
-        state.updatedAt = Date.now();
-        callWatchers();
-        state.scheduledObservers = new Set(state.observers);
-        nextTickScheduler.schedule(callObservers);
-      },
-      self,
+    const next: Next<Value> = (value) => {
+      state.value = value instanceof Function ? value(state.value) : value;
+      state.updatedTimestamp = Date.now();
+      invokeSyncObservers();
+      state.scheduledObservers = new Set(state.observers);
+      nextTickScheduler.schedule(invokeObservers);
     };
 
-    const instance = self as Observable<Value, API>;
-    (instance as any)[INTERNALS_KEY] = internals;
-    (instance as any)[STATE_KEY] = state;
-
-    if (api) {
-      const record = api(internals.next);
-      for (const [key, handler] of Object.entries(record)) {
-        instance[key as keyof API] = handler as Observable<
-          Value,
-          API
-        >[keyof API];
-      }
-    }
-
-    Object.defineProperty(instance, 'updatedAt', {
-      get: function () {
-        return state.updatedAt;
-      },
-    });
-
-    instance.observe = (callback) => {
+    const observe: ObserveFunction<Value> = (callback) => {
       const observer = () => callback(state.value);
       state.observers.add(observer);
 
@@ -87,53 +62,81 @@ export const newObservable = <Value>(value: Value) => ({
       };
     };
 
-    instance._unsafe = {
-      destroy: () => {
-        callDestroyers();
-        state.destroyed = true;
-      },
-      watch: (callback) => {
-        const watcher = () => callback(state.value);
-        state.watchers.add(watcher);
-
-        return () => {
-          state.watchers.delete(watcher);
-        };
-      },
-      type: 'observable',
+    const observeSync: ObserveFunction<Value> = (callback) => {
+      const watcher = () => callback(state.value);
+      state.syncObservers.add(watcher);
+      return () => {
+        state.syncObservers.delete(watcher);
+      };
     };
 
-    // @ts-ignore
-    instance.pipe = (...fns: any[]): any => pipe(instance, ...fns);
+    const selfPipe = (...fns: any[]): any => untypedPipe(instance, ...fns);
+
+    const instance = self as Observable<Value, API>;
+
+    if (api) {
+      const record = api(next);
+      for (const [key, handler] of Object.entries(record)) {
+        Object.defineProperty(instance, key, {
+          value: handler,
+          writable: false,
+          enumerable: false,
+        });
+      }
+    }
+
+    const administration: ObservableAdministration<Value> = {
+      unsafe_state: state,
+      helpers: { next, self },
+    };
+
+    Object.defineProperty(instance as any, ADMINISTRATION, {
+      value: administration,
+      writable: false,
+      enumerable: false,
+    });
+
+    Object.defineProperty(instance, 'pipe', {
+      value: selfPipe,
+      writable: false,
+      enumerable: false,
+    });
+
+    Object.defineProperty(instance, 'observe', {
+      value: observe,
+      writable: false,
+      enumerable: false,
+    });
+
+    Object.defineProperty(instance, 'observeSync', {
+      value: observeSync,
+      writable: false,
+      enumerable: false,
+    });
+
+    Object.defineProperty(instance, 'updatedTimestamp', {
+      get() {
+        return state.updatedTimestamp;
+      },
+      enumerable: false,
+    });
 
     return instance as Observable<Value, API>;
   },
 });
 
-export const observable = newObservable as NewObservable;
+export const observable = makeObservable as MakeObservable;
 
 export const of = <Value>(
   value: Value,
 ): Observable<Value, { next: Next<Value> }> =>
-  observable<Value>(value).create((next) => ({ next }));
+  observable<Value>(value).api((next) => ({ next }));
 
-const getInternals = <Value>(
+export const admin = <Value>(
   observable: Observable<Value, NonNullable<unknown>>,
-): ObservableInternals<Value> => (observable as any)[INTERNALS_KEY];
-
-const getState = <Value>(
-  observable: Observable<Value, NonNullable<unknown>>,
-): ObservableState<Value> => (observable as any)[STATE_KEY];
+): ObservableAdministration<Value> => (observable as any)[ADMINISTRATION];
 
 export const operate: Operate = ({ destination, define }) => {
-  if (define) {
-    const onDestroy = define(getInternals(destination));
-    if (onDestroy) {
-      const destroyers = Array.isArray(onDestroy) ? onDestroy : [onDestroy];
-      for (const destroyer of destroyers) {
-        getState(destination).destroyers.add(destroyer);
-      }
-    }
-  }
+  define(admin(destination).helpers);
   return destination;
 };
