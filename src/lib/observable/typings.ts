@@ -4,14 +4,16 @@ export type APIRecord = Record<string, (...args: any[]) => unknown>;
 
 export type Next<Value> = (value: Value | ((prev: Value) => Value)) => void;
 
+export type OnDestroy = Lazy;
+
 export interface Operate {
-  <Destination extends Observable<any, NonNullable<unknown>>>(parameters: {
+  <Destination extends Observable>(parameters: {
     destination: Destination;
     define: (
       helpers: ObservableAdministration<
         ObservableValue<Destination>
       >['helpers'],
-    ) => void;
+    ) => OnDestroy | OnDestroy[] | void;
   }): Destination;
 }
 
@@ -27,7 +29,10 @@ export interface Callable<Value> {
 
 export type NoAPI = Record<string, never>;
 
-export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
+export type Observable<
+  Value = any,
+  API extends APIRecord = NonNullable<unknown>,
+> = Callable<Value> &
   Omit<API, 'observe' | 'observeSync' | 'pipe' | 'updatedTimestamp'> & {
     observe: ObserveFunction<Value>;
     observeSync: ObserveFunction<Value>;
@@ -35,8 +40,7 @@ export type Observable<Value, API extends APIRecord = NoAPI> = Callable<Value> &
     updatedTimestamp: number;
   };
 
-export type ObservableValue<T extends Observable<any, NonNullable<unknown>>> =
-  ReturnType<T>;
+export type ObservableValue<T extends Observable> = ReturnType<T>;
 
 export type ObservableAdministration<Value> = {
   unsafe_state: Readonly<{

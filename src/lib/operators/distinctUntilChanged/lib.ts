@@ -4,7 +4,7 @@ import { observable, Observable, operate } from '../../observable';
 
 export const distinctUntilChanged =
   <T>(comparer?: EqualsComparer<T>) =>
-  (source: Observable<T, NonNullable<unknown>>): Observable<T> => {
+  (source: Observable<T>): Observable<T> => {
     const compare = comparer || equals;
     let lastValue = source();
 

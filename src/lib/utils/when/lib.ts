@@ -2,7 +2,7 @@ import { Observable } from '../../observable';
 import { timeoutScheduler } from '../../scheduler';
 
 export const when = <T>(
-  source: Observable<T, NonNullable<unknown>>,
+  source: Observable<T>,
   predicate: (value: T) => boolean,
   timeout: number = Infinity,
 ) =>

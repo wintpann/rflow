@@ -1,5 +1,5 @@
-import { observable, isObservable, of } from './lib.ts';
-import { observe, observeSync } from '../test-utils.ts';
+import { observable, isObservable, of, readTracker } from './lib.ts';
+import { observe, observeSync, read } from '../test-utils.ts';
 import { nextTickScheduler } from '../scheduler';
 
 describe('observable', () => {
@@ -69,5 +69,30 @@ describe('observable', () => {
     nextTickScheduler.flush();
     expect(observe1.updates.current).toStrictEqual([1, 5]);
     expect(observeSync1.updates.current).toStrictEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe('readTracker', () => {
+  it('should track read', () => {
+    const source1 = of(0);
+    const source2 = of(0);
+    const source3 = of(0);
+
+    const untrack1 = readTracker.track();
+    expect(Array.from(untrack1())).toStrictEqual([]);
+
+    const untrack2 = readTracker.track();
+    read(source1);
+    expect(Array.from(untrack2())).toStrictEqual([source1]);
+    expect(Array.from(untrack1())).toStrictEqual([]);
+
+    const untrack3 = readTracker.track();
+    read(source1);
+    read(source2);
+    read(source3);
+    read(source2);
+    expect(Array.from(untrack3())).toStrictEqual([source1, source2, source3]);
+    expect(Array.from(untrack2())).toStrictEqual([source1]);
+    expect(Array.from(untrack1())).toStrictEqual([]);
   });
 });

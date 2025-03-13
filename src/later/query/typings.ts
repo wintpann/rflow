@@ -53,7 +53,7 @@
 // export type QueryParams<Data, Error, Args> = {
 //   fn: (args: Args, signal: AbortSignal) => Promise<Data>;
 //   key: (args: Args) => QueryKey;
-//   args?: Observable<Args, NonNullable<unknown>>;
+//   args?: Observable<Args>;
 //   dependsOn?: ContinualObservable | ContinualObservable[];
 //   enabled?: (args: Args) => boolean;
 //   initialData?: Data;

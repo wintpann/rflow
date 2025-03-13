@@ -7,23 +7,23 @@ import {
 import { Combine } from './typings.ts';
 
 export const combine: Combine = (
-  first: any,
-  ...rest: any[]
-): Observable<any> => {
+  first: Observable,
+  ...rest: Observable[]
+): Observable => {
   const isStruct = !isObservable(first);
-  const sources = isStruct
-    ? (Object.values(first) as Observable<any>[])
-    : ([first, ...rest] as Observable<any>[]);
+  const sources: Observable[] = isStruct
+    ? Object.values(first)
+    : [first, ...rest];
 
   const value = () => {
     if (isStruct) {
-      return Object.entries<Observable<any>>(first).reduce(
+      return Object.entries<Observable>(first).reduce(
         (acc, [key, observable]) => ({ ...acc, [key]: observable() }),
         {},
       );
     }
 
-    return sources.map((observable) => observable());
+    return sources.map((source) => source());
   };
 
   return operate({

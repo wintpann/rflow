@@ -1,94 +1,85 @@
 import { Observable } from '../../observable';
 
 export interface Combine {
-  <S extends Record<string, Observable<any, NonNullable<unknown>>>>(
-    struct: S,
-  ): Observable<{
-    [K in keyof S]: S[K] extends Observable<infer R, NonNullable<unknown>>
-      ? R
-      : never;
+  <S extends Record<string, Observable>>(struct: S): Observable<{
+    [K in keyof S]: S[K] extends Observable<infer R> ? R : never;
   }>;
 
-  <A>(a: Observable<A, NonNullable<unknown>>): Observable<[A]>;
+  <A>(a: Observable<A>): Observable<[A]>;
 
-  <A, B>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-  ): Observable<[A, B]>;
+  <A, B>(a: Observable<A>, b: Observable<B>): Observable<[A, B]>;
 
-  <A, B, C>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-  ): Observable<[A, B, C]>;
+  <A, B, C>(a: Observable<A>, b: Observable<B>, c: Observable<C>): Observable<
+    [A, B, C]
+  >;
 
   <A, B, C, D>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
   ): Observable<[A, B, C, D]>;
 
   <A, B, C, D, F>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
   ): Observable<[A, B, C, D, F]>;
 
   <A, B, C, D, F, G>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
-    g: Observable<G, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
+    g: Observable<G>,
   ): Observable<[A, B, C, D, F, G]>;
 
   <A, B, C, D, F, G, H>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
-    g: Observable<G, NonNullable<unknown>>,
-    h: Observable<H, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
+    g: Observable<G>,
+    h: Observable<H>,
   ): Observable<[A, B, C, D, F, G, H]>;
 
   <A, B, C, D, F, G, H, I>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
-    g: Observable<G, NonNullable<unknown>>,
-    h: Observable<H, NonNullable<unknown>>,
-    i: Observable<I, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
+    g: Observable<G>,
+    h: Observable<H>,
+    i: Observable<I>,
   ): Observable<[A, B, C, D, F, G, H, I]>;
 
   <A, B, C, D, F, G, H, I, J>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
-    g: Observable<G, NonNullable<unknown>>,
-    h: Observable<H, NonNullable<unknown>>,
-    i: Observable<I, NonNullable<unknown>>,
-    j: Observable<J, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
+    g: Observable<G>,
+    h: Observable<H>,
+    i: Observable<I>,
+    j: Observable<J>,
   ): Observable<[A, B, C, D, F, G, H, I, J]>;
 
   <A, B, C, D, F, G, H, I, J, K>(
-    a: Observable<A, NonNullable<unknown>>,
-    b: Observable<B, NonNullable<unknown>>,
-    c: Observable<C, NonNullable<unknown>>,
-    d: Observable<D, NonNullable<unknown>>,
-    f: Observable<F, NonNullable<unknown>>,
-    g: Observable<G, NonNullable<unknown>>,
-    h: Observable<H, NonNullable<unknown>>,
-    i: Observable<I, NonNullable<unknown>>,
-    j: Observable<J, NonNullable<unknown>>,
-    k: Observable<K, NonNullable<unknown>>,
+    a: Observable<A>,
+    b: Observable<B>,
+    c: Observable<C>,
+    d: Observable<D>,
+    f: Observable<F>,
+    g: Observable<G>,
+    h: Observable<H>,
+    i: Observable<I>,
+    j: Observable<J>,
+    k: Observable<K>,
   ): Observable<[A, B, C, D, F, G, H, I, J, K]>;
 }

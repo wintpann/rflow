@@ -1,8 +1,6 @@
 import { Observable } from './observable';
 
-export const observe = <Value>(
-  observable: Observable<Value, NonNullable<unknown>>,
-) => {
+export const observe = <Value>(observable: Observable<Value>) => {
   const updates = {
     current: [] as Value[],
     get last() {
@@ -17,9 +15,7 @@ export const observe = <Value>(
   return { updates, dispose };
 };
 
-export const observeSync = <Value>(
-  observable: Observable<Value, NonNullable<unknown>>,
-) => {
+export const observeSync = <Value>(observable: Observable<Value>) => {
   const updates = {
     current: [] as Value[],
     get last() {
@@ -34,8 +30,6 @@ export const observeSync = <Value>(
   return { updates, dispose };
 };
 
-export const read = <Value>(
-  observable: Observable<Value, NonNullable<unknown>>,
-) => observable();
+export const read = <Value>(observable: Observable<Value>) => observable();
 
 export const nextTick = async () => await new Promise(process.nextTick);

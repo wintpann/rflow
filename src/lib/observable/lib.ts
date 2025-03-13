@@ -19,6 +19,27 @@ export const isObservable = <Value = any>(
 
 const untypedPipe = pipe as (value: any, ...fns: any) => any;
 
+export const readTracker = (() => {
+  const stacks = new Set<Set<Observable>>();
+
+  const track = () => {
+    const stack = new Set<Observable>();
+    stacks.add(stack);
+    return () => {
+      stacks.delete(stack);
+      return stack;
+    };
+  };
+
+  const read = (observable: Observable<any, NonNullable<unknown>>) => {
+    for (const stack of stacks.values()) {
+      stack.add(observable);
+    }
+  };
+
+  return { read, track };
+})();
+
 const makeObservable = <Value>(value: Value) => ({
   api: <API extends APIRecord = NoAPI>(api?: (next: Next<Value>) => API) => {
     const state = {
@@ -43,7 +64,10 @@ const makeObservable = <Value>(value: Value) => ({
       }
     };
 
-    const self = () => state.value;
+    const self = () => {
+      readTracker.read(instance);
+      return state.value;
+    };
 
     const next: Next<Value> = (value) => {
       state.value = value instanceof Function ? value(state.value) : value;
@@ -133,7 +157,7 @@ export const of = <Value>(
   observable<Value>(value).api((next) => ({ next }));
 
 export const admin = <Value>(
-  observable: Observable<Value, NonNullable<unknown>>,
+  observable: Observable<Value>,
 ): ObservableAdministration<Value> => (observable as any)[ADMINISTRATION];
 
 export const operate: Operate = ({ destination, define }) => {

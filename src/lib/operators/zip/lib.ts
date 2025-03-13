@@ -1,20 +1,18 @@
 import { observable, operate, Observable } from '../../observable';
 import { Zip } from './typings.ts';
 
-export const zip: Zip = (
-  ...observables: Observable<any, NonNullable<unknown>>[]
-): Observable<any> => {
-  const stacks = observables.map((observable) => [observable()]);
+export const zip: Zip = (...sources: Observable[]): Observable => {
+  const stacks = sources.map((source) => [source()]);
   const shift = () => stacks.map((stack) => stack.shift());
-  const canNext = () => stacks.every((stack) => stack.length > 0);
+  const canShift = () => stacks.every((stack) => stack.length > 0);
 
   return operate({
     destination: observable(shift()).api(),
     define: ({ next }) =>
-      observables.map((observable, index) =>
+      sources.map((observable, index) =>
         observable.observeSync((value) => {
           stacks[index].push(value);
-          if (canNext()) {
+          if (canShift()) {
             next(shift());
           }
         }),
