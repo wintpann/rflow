@@ -1,4 +1,11 @@
-import { FC, createElement, useEffect, useReducer, useRef } from 'react';
+import {
+  FC,
+  createElement,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { Observable, readTracker } from '../../observable';
 import { Lazy } from '../../shared';
 
@@ -34,4 +41,10 @@ export function observer<Props extends object = object>(
 
     return createElement(component, props);
   };
+}
+
+export function useModel<T>(factory: Lazy<T>): T {
+  // TODO do not track reads here
+  const [model] = useState(factory);
+  return model;
 }
